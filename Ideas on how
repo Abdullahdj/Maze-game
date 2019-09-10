@@ -1,0 +1,19 @@
+First I need to create a function that creates a grid of specified size
+Then I need to create a function that will procedurally generate paths through that grid and will also generate dead ends
+Need to make sure the code can create walls on the side of paths taken
+How it will work:
+1) Grid (2d array) will be initialised using inputs and a for loop (done) (all blocks being walls)
+2) Function that generates paths:
+        It will first be given a starting point (top left for consistency)
+        A copy of the blank grid will be used btw
+        Then a rng will be used to choose direction to travel (omitting impossible paths like out of the grid itself and
+          visited paths and paths next to travelled routes to create walled of effect)
+        A stack will be used to record last location and the current location will change to the next point on the grid
+        Last point visited will be converted from a blank to a path and
+        All other neighbouring tiles will become impossible for the current "snake" to visit (marked off as some number like 3 as confirmed walls(only for that particular snake))
+        If the new node/ position has no possible routes to travel to the stack will be used to backtrack until a node that has a valid path is found
+            (all confirmed walls that were created will have to be removed likely using another stack for history)
+        Once the "snake" has reached the exit the new edited maze will be overlapped with the actual maze (using rules like paths overwrite confirmed walls)
+        This is repeated until the inputted amount of paths are created
+  And Dead Ends:
+        A starting point will be used and a random endpoint that doesnt
