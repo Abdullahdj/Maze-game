@@ -1,19 +1,34 @@
 First I need to create a function that creates a grid of specified size
 Then I need to create a function that will procedurally generate paths through that grid and will also generate dead ends
 Need to make sure the code can create walls on the side of paths taken
+I must create the stack datatype first (found out after attempt 1)
 How it will work:
-1) Grid (2d array) will be initialised using inputs and a for loop (done) (all blocks being walls)
+1) Grid (2d array) will be initialised using inputs and a for loop (all blocks being empty cell with 4 walls indicated by a tuple of 4 ones) [Done]
 2) Function that generates paths:
-        It will first be given a starting point (top left for consistency)
-        A copy of the blank grid will be used btw
+        It will first be given a starting point (top left for consistency) and end point (bottom right)
         Then a rng will be used to choose direction to travel (omitting impossible paths like out of the grid itself and
-          visited paths and paths next to travelled routes to create walled of effect)
-        A stack will be used to record last location and the current location will change to the next point on the grid
-        Last point visited will be converted from a blank to a path and
-        All other neighbouring tiles will become impossible for the current "snake" to visit (marked off as some number like 3 as confirmed walls(only for that particular snake))
+          visited paths)
+        A stack will be used to record last location and the current location will change to the next point on the grid (using direction)
+        Last point visited will have a wall removed to create a path
         If the new node/ position has no possible routes to travel to the stack will be used to backtrack until a node that has a valid path is found
-            (all confirmed walls that were created will have to be removed likely using another stack for history)
-        Once the "snake" has reached the exit the new edited maze will be overlapped with the actual maze (using rules like paths overwrite confirmed walls)
+            (all nodes that are popped off the stack at that point will have it's walls replaced (except current node))
+        Once the "snake" has reached the exit the new maze with one path has been created
         This is repeated until the inputted amount of paths are created
   And Dead Ends:
-        A starting point will be used and a random endpoint that doesnt
+        A starting point will be used and a random endpoint that is randomly chosen (omitting end point)
+        The same algorithm as above is used but is repeated until all nodes have at least one path that leads to it from any other node(!= [1,1,1,1])
+
+<I hereby name this algorithm I have created Djendel's maze finder>
+
+3) Stack data structure (later i will make this recursive for now this is easier)
+        Create an attribute that is an empty list (only accessible through methods normally (python limitation)) (No need for limit can be added later if required (likely not however)).
+        Create method to push onto the stack
+            Literally Stack.list.append(Value)
+        Create method to pull of the stack
+            Only pulls (returns) of the top (Don't forget to remove the item from the list (depending on implementation))
+            If stack is empty raises either an error or False (error is better but false can be used to prevent the code from stopping)
+        Create a method to peek/top to see the top value (no other value should be "visible") (stack isn't changed it is only an observation of the stack)
+        Create method to check if empty
+        Create method to check if value is in the stack
+CHOICE:
+    Use recursive backtracking instead (creates perfect maze (only one path to each node)) that isn't random however (only start position and direction)
