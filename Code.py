@@ -1,29 +1,43 @@
 import random
 
-def ChooseDirection(maze, current_position):
-    PossibleDirections = []
-    Direction = 1
-    while Direction < 4:
-        try:
-            if Direction == 1:
-                maze[current_position[0] - 1][current_position[1]]
-            elif Direction == 2:
-                maze[current_position[0]][current_position[1] + 1]
-            elif Direction == 3:
-                maze[current_position[0] + 1][current_position[1]]
-            elif Direction == 4:
-                maze[current_position[0]][current_position[1] - 1]
-            else:
-                raise ArithmeticError("Bad programmer you get -rep")
-            PossibleDirections.append(Direction)
-            Direction += 1
-        except IndexError:
-            Direction += 1
+def ChooseDirection(maze, current_position, history):
+    PossibleDirections = [0, 1, 2, 3]
+    if (current_position[0] - 1) < 0:
+        PossibleDirections.remove(0)
+    if (current_position[1] - 1) < 0:
+        PossibleDirections.remove(1)
 
-    #So far enough to omit impossible directions however stack needs to be implemented first before proceeding
+    try:
+        maze[current_position[0] + 1][current_position[1]]
+    except IndexError:
+        PossibleDirections.remove(2)
+    try:
+        maze[current_position[0]][current_position[1] + 1]
+    except IndexError:
+        PossibleDirections.remove(3)
 
-    Direction = PossibleDirections[randint(0,len(PossibleDirections)-1)]
+    # So far enough to omit impossible directions however stack needs to be implemented first before proceeding to remove visited directions
 
+    # Check for previously visited paths using history Stack
+    for direction in PossibleDirections:
+        if direction == 0:
+            if history.instack([current_position[0] - 1, current_position[1]]):
+                PossibleDirections.remove(direction)
+        elif direction == 1:
+            if history.instack([[current_position[0]], [current_position[1] + 1]]):
+                PossibleDirections.remove(direction)
+        elif direction == 2:
+            if history.instack([[current_position[0] + 1], [current_position[1]]]):
+                PossibleDirections.remove(direction)
+        elif direction == 3:
+            if history.instack([[current_position[0]], [current_position[1] - 1]]):
+                PossibleDirections.remove(direction)
+
+    # Return random direction
+    if len(PossibleDirections) != 0:
+        Direction = PossibleDirections[random.randint(0, len(PossibleDirections)-1)]
+        return Direction
+    return False
 
 class Stack:
     def __init__(self):
@@ -53,8 +67,6 @@ class Stack:
         return False
 
 
-
-
 class Grid:
 
     def __init__(self, width, length):
@@ -69,5 +81,6 @@ class Grid:
     def CreateMaze(self):
         History = Stack()
         Position = [0, 0]
-        Exit = [self.width-1,self.length-1]
-        Direction = ChooseDirection(self.maze,Position)   # Directions in order correspond to NWSE
+        Exit = [self.width-1, self.length-1]
+        Direction = ChooseDirection(self.maze, Position, History)   # Directions in order correspond to NWSE
+        print(Direction)

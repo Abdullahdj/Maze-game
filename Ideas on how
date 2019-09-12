@@ -1,7 +1,7 @@
 First I need to create a function that creates a grid of specified size
 Then I need to create a function that will procedurally generate paths through that grid and will also generate dead ends
 Need to make sure the code can create walls on the side of paths taken
-I must create the stack datatype first (found out after attempt 1)
+I must create the stack data structure first (found out after attempt 1)
 How it will work:
 1) Grid (2d array) will be initialised using inputs and a for loop (all blocks being empty cell with 4 walls indicated by a tuple of 4 ones) [Done]
 2) Function that generates paths:
@@ -18,7 +18,7 @@ How it will work:
         A starting point will be used and a random endpoint that is randomly chosen (omitting end point)
         The same algorithm as above is used but is repeated until all nodes have at least one path that leads to it from any other node(!= [1,1,1,1])
 
-<I hereby name this algorithm I have created Djendel's maze finder>
+<I hereby name this algorithm I have created Djendel's maze snake algorithm>
 
 3) Stack data structure (later i will make this recursive for now this is easier)
         Create an attribute that is an empty list (only accessible through methods normally (python limitation)) (No need for limit can be added later if required (likely not however)).
