@@ -10,6 +10,7 @@ How it will work:
           visited paths)
         A stack will be used to record last location and the current location will change to the next point on the grid (using direction)
         Last point visited will have a wall removed to create a path
+(----)
         If the new node/ position has no possible routes to travel to the stack will be used to backtrack until a node that has a valid path is found
             (all nodes that are popped off the stack at that point will have it's walls replaced (except current node))
         Once the "snake" has reached the exit the new maze with one path has been created
@@ -20,7 +21,7 @@ How it will work:
 
 <I hereby name this algorithm I have created Djendel's maze snake algorithm>
 
-3) Stack data structure (later i will make this recursive for now this is easier)
+3) Stack data structure (later i will make this recursive for now this is easier) (Done No recursion)
         Create an attribute that is an empty list (only accessible through methods normally (python limitation)) (No need for limit can be added later if required (likely not however)).
         Create method to push onto the stack
             Literally Stack.list.append(Value)
