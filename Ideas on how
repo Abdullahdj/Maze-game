@@ -10,11 +10,11 @@ How it will work:
           visited paths)
         A stack will be used to record last location and the current location will change to the next point on the grid (using direction)
         Last point visited will have a wall removed to create a path
-(----)
         If the new node/ position has no possible routes to travel to the stack will be used to backtrack until a node that has a valid path is found
             (all nodes that are popped off the stack at that point will have it's walls replaced (except current node))
         Once the "snake" has reached the exit the new maze with one path has been created
         This is repeated until the inputted amount of paths are created
+(-----)
   And Dead Ends:
         A starting point will be used and a random endpoint that is randomly chosen (omitting end point)
         The same algorithm as above is used but is repeated until all nodes have at least one path that leads to it from any other node(!= [1,1,1,1])
