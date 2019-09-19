@@ -16,8 +16,8 @@ How it will work:
         This is repeated until the inputted amount of paths are created
 (-----)
   And Dead Ends:
-        A starting point will be used and a random endpoint that is randomly chosen (omitting end point)
-        The same algorithm as above is used but is repeated until all nodes have at least one path that leads to it from any other node(!= [1,1,1,1])
+        A starting point will be used that is randomly chosen from a position with all walls (omitting end point) and same endpoint will be used
+        The same algorithm as above is used but is repeated until all nodes have at least one path that leads to it from any other node (!= [1,1,1,1])
 
 <I hereby name this algorithm I have created Djendel's maze snake algorithm>
 
