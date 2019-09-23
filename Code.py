@@ -80,109 +80,103 @@ class Grid:
 
     def CreateGrid(self):
         for x in range(0, self.width):
-            self.maze.append([[1, 1, 1, 1]] * self.width)  # Need mutable array (fixed size) for this can only get immutable tuple      #In format NWSE(compass)   #indexes in (y,x) format (for graphical output)
+            self.maze.append([])
+            for y in range(0,self.width):
+                self.maze[x].append([1, 1, 1, 1])  # Need mutable array (fixed size) for this can only get immutable tuple      #In format NWSE(compass)   #indexes in (y,x) format (for graphical output)
 
     def CheckUnvisitedNode(self):
         Coordinates = []
+        UnvisitableNodesExist = False
         for y in range(0, len(self.maze)):
             for x in range(0, len(self.maze[y])):
                 if self.maze[y][x] == [1, 1, 1, 1]:
                     Coordinates.append([y, x])
-        return Coordinates
+                    UnvisitableNodesExist = True
+        return UnvisitableNodesExist, Coordinates
 
     def CreateMaze(self):
         History = Stack()      # Note that data in the History stack should be in [y,x] format
         Omit = None
         OmitList = []
+        UnvisitableNodesExist = True
         Position = [int(self.width/2), int(self.width/2)]
         Exit = [self.width-1, self.width-1]    # will adjust to be random later this is for testing purposes
-        while Position != Exit:
-            AmountOfDirections, Direction = ChooseDirection(self.maze, Position, History, Omit, OmitList)   # Directions in order correspond to NWSE     Choose random direction
+        while UnvisitableNodesExist:
+            while Position != Exit:
+                AmountOfDirections, Direction = ChooseDirection(self.maze, Position, History, Omit, OmitList)   # Directions in order correspond to NWSE     Choose random direction
+                Omit = None
+                # Break walls ,change position ,add last position to stack
+                if Direction == 0:
+                    self.maze[Position[0]][Position[1]][0] = 0
+                    self.maze[Position[0] - 1][Position[1]][2] = 0
+                    History.push(Position)
+                    Position = [Position[0] - 1, Position[1]]
+                elif Direction == 1:
+                    self.maze[Position[0]][Position[1]][1] = 0
+                    self.maze[Position[0]][Position[1] - 1][3] = 0
+                    History.push(Position)
+                    Position = [Position[0], Position[1] - 1]
+                elif Direction == 2:
+                    self.maze[Position[0]][Position[1]][2] = 0
+                    self.maze[Position[0] + 1][Position[1]][0] = 0
+                    History.push(Position)
+                    Position = [Position[0] + 1, Position[1]]
+                elif Direction == 3:
+                    self.maze[Position[0]][Position[1]][3] = 0
+                    self.maze[Position[0]][Position[1] + 1][1] = 0
+                    History.push(Position)
+                    Position = [Position[0], Position[1] + 1]
+
+                # Repeats until a route that hasn't been explored is used     (It may go back through the old path over and over until the new path is randomly chosen)
+                elif Direction == 4:
+                    while AmountOfDirections == 0:
+                        AmountOfDirections, Direction = ChooseDirection(self.maze, Position, History, Omit, OmitList)
+                        Omit = None
+                        try:
+                            LastPosition = History.pop()
+                            if LastPosition[0] == Position[0]:
+                                if LastPosition[1] == Position[1] + 1:
+                                    #East
+                                    self.maze[Position[0]][Position[1]][3] = 1
+                                    self.maze[LastPosition[0]][LastPosition[1]][1] = 1
+                                    Omit = 1
+                                #West
+                                elif LastPosition[1] == Position[1] - 1:
+                                    self.maze[Position[0]][Position[1]][1] = 1
+                                    self.maze[LastPosition[0]][LastPosition[1]][3] = 1
+                                    Omit = 3
+                            elif LastPosition[1] == Position[1]:
+                                #South
+                                if LastPosition[0] == Position[0] + 1:
+                                    self.maze[Position[0]][Position[1]][2] = 1
+                                    self.maze[LastPosition[0]][LastPosition[1]][0] = 1
+                                    Omit = 0
+                                #North
+                                elif LastPosition[0] == Position[0] - 1:
+                                    self.maze[Position[0]][Position[1]][0] = 1
+                                    self.maze[LastPosition[0]][LastPosition[1]][2] = 1
+                                    Omit = 2
+                            PositionToOmit = Position
+                            Position = LastPosition
+                        except IndexError:
+                            OmitList = []
+                            AmountOfDirections = 4
+                    OmitList.append(PositionToOmit)
+            History = Stack()
             Omit = None
-            # Break walls ,change position ,add last position to stack
-            if Direction == 0:
-                self.maze[Position[0]][Position[1]] = [0,                                           # Done like this to ensure that the maze can overlap walls and gaps
-                                                       self.maze[Position[0]][Position[1]][1],
-                                                       self.maze[Position[0]][Position[1]][2],
-                                                       self.maze[Position[0]][Position[1]][3]]
-                self.maze[Position[0] - 1][Position[1]] = [self.maze[Position[0] - 1][Position[1]][0],
-                                                           self.maze[Position[0] - 1][Position[1]][1],
-                                                           0,
-                                                           self.maze[Position[0] - 1][Position[1]][3]]
-                History.push(Position)
-                Position = [Position[0] - 1, Position[1]]
-            elif Direction == 1:
-                self.maze[Position[0]][Position[1]] = [self.maze[Position[0]][Position[1]][0],
-                                                       0,
-                                                       self.maze[Position[0]][Position[1]][2],
-                                                       self.maze[Position[0]][Position[1]][3]]
-                self.maze[Position[0]][Position[1] - 1] = [self.maze[Position[0]][Position[1] - 1][0],
-                                                           self.maze[Position[0]][Position[1] - 1][1],
-                                                           self.maze[Position[0]][Position[1] - 1][2],
-                                                           0]
-                History.push(Position)
-                Position = [Position[0], Position[1] - 1]
-            elif Direction == 2:
-                self.maze[Position[0]][Position[1]] = [self.maze[Position[0]][Position[1]][0],
-                                                       self.maze[Position[0]][Position[1]][1],
-                                                       0,
-                                                       self.maze[Position[0]][Position[1]][3]]
-                self.maze[Position[0] + 1][Position[1]] = [0,
-                                                           self.maze[Position[0] + 1][Position[1]][1],
-                                                           self.maze[Position[0] + 1][Position[1]][2],
-                                                           self.maze[Position[0] + 1][Position[1]][3]]
-                History.push(Position)
-                Position = [Position[0] + 1, Position[1]]
-            elif Direction == 3:
-                self.maze[Position[0]][Position[1]] = [self.maze[Position[0]][Position[1]][0],
-                                                       self.maze[Position[0]][Position[1]][1],
-                                                       self.maze[Position[0]][Position[1]][2],
-                                                       0]
-                self.maze[Position[0]][Position[1] + 1] = [self.maze[Position[0]][Position[1] + 1][0],
-                                                           0,
-                                                           self.maze[Position[0]][Position[1] + 1][2],
-                                                           self.maze[Position[0]][Position[1] + 1][3]]
-                History.push(Position)
-                Position = [Position[0], Position[1] + 1]
-
-            # Repeats until a route that hasn't been explored is used     (It may go back through the old path over and over until the new path is randomly chosen)
-            elif Direction == 4:
-                while AmountOfDirections == 0:
-                    AmountOfDirections, Direction = ChooseDirection(self.maze, Position, History, Omit, OmitList)
-                    Omit = None
-                    try:
-                        LastPosition = History.pop()
-                        if LastPosition[0] == Position[0]:
-                            if LastPosition[1] == Position[1] + 1:
-                                #East
-                                self.maze[Position[0]][Position[1]][3] = 1
-                                self.maze[LastPosition[0]][LastPosition[1]][1] = 1
-                                Omit = 1
-                            #West
-                            elif LastPosition[1] == Position[1] - 1:
-                                self.maze[Position[0]][Position[1]][1] = 1
-                                self.maze[LastPosition[0]][LastPosition[1]][3] = 1
-                                Omit = 3
-                        elif LastPosition[1] == Position[1]:
-                            #South
-                            if LastPosition[0] == Position[0] + 1:
-                                self.maze[Position[0]][Position[1]][2] = 1
-                                self.maze[LastPosition[0]][LastPosition[1]][0] = 1
-                                Omit = 0
-                            #North
-                            elif LastPosition[0] == Position[0] - 1:
-                                self.maze[Position[0]][Position[1]][0] = 1
-                                self.maze[LastPosition[0]][LastPosition[1]][2] = 1
-                                Omit = 2
-                        PositionToOmit = Position
-                        Position = LastPosition
-                    except:
-                        OmitList = []
-                        AmountOfDirections = 4
-                OmitList.append(PositionToOmit)
+            OmitList = []
+            UnvisitableNodesExist, UnvisitedNodes = self.CheckUnvisitedNode()
+            if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
+                break
+            Position = random.choice(UnvisitedNodes)
+            UnvisitedNodes.remove(Position)
+            if len(UnvisitedNodes) == 0:
+                Exit = [self.width - 1, self.width - 1]
+            else:
+                Exit = random.choice(UnvisitedNodes)
 
 
-x = Grid(100)
+x = Grid(20)
 x.CreateGrid()
 x.CreateMaze()
 

@@ -160,7 +160,7 @@ class Grid:
                 OmitList.append(PositionToOmit)
 
 
-x = Grid(10)
+x = Grid(5)
 x.CreateGrid()
 x.CreateMaze()
 
