@@ -9,6 +9,7 @@ class Grid:
             self.width = 1
         else:
             self.width = width
+        self.walls = None
         self.maze = []
         self.layer = []
 
@@ -123,7 +124,7 @@ class Grid:
 
                     # Repeats until a route that hasn't been explored is used     (It may go back through the old path over and over until the new path is randomly chosen)
                     elif Direction == 4:
-                        PositionToOmit = ""
+                        PositionToOmit = None
                         while AmountOfDirections == 0:
                             AmountOfDirections, Direction = self.ChooseDirection(Position, history, Omit, OmitList)
                             Omit = None
