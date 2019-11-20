@@ -10,6 +10,7 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
+
 darkorange = (255, 140, 0)
 lightgreen = (0, 255, 127)
 whitegreen = (0, 255, 200)
@@ -70,12 +71,32 @@ def alter_window(aspect_ratio):
     return win, width, height
 
 
-running = True
-
-
-def draw_grid(win, grid):
+def collect_locations(win, grid):
     grid.walls = []
     locations = []
+    width, height = win.get_size()
+    if width >= height:
+        square_width = int(height / grid.width)
+        draw_point = (width - (square_width * grid.width)) / 2
+        for x in range(0, grid.width):
+            for y in range(0, grid.width):
+                pygame.draw.rect(win, whiteblue, (draw_point + (x * square_width), square_width*y, square_width, square_width))
+                top_right_x = (draw_point + (x * square_width))
+                top_right_y = square_width*y
+                locations.append((top_right_x, top_right_y))
+                if grid.maze[y][x][0] == 1:
+                    grid.walls.append([(top_right_x, top_right_y), (top_right_x + square_width, top_right_y)])
+                if grid.maze[y][x][1] == 1:
+                    grid.walls.append([(top_right_x, top_right_y), (top_right_x, top_right_y + square_width)])
+                if grid.maze[y][x][2] == 1:
+                    grid.walls.append([(top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width)])
+                if grid.maze[y][x][3] == 1:
+                    grid.walls.append([(top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width)])
+        grid.walls = list(set(map(tuple, grid.walls)))
+        return locations, grid.walls, square_width
+
+
+def draw_grid(grid, win):
     width, height = win.get_size()
     if width >= height:
         square_width = int(height / grid.width)
@@ -83,89 +104,60 @@ def draw_grid(win, grid):
         line_width = 5
         for x in range(0, grid.width):
             for y in range(0, grid.width):
-                pygame.draw.rect(win, whiteblue, (draw_point + (x * square_width), square_width*y, square_width, square_width))
-                top_right_x = (draw_point + (x * square_width))
-                top_right_y = square_width*y
-                locations.append((top_right_x, top_right_y))
-
-        square_width = int(height / grid.width)
-        draw_point = (width - (square_width * grid.width)) / 2
-        line_width = 5
-        for x in range(0, grid.width):
-            for y in range(0, grid.width):
                 top_right_x = (draw_point + (x * square_width))
                 top_right_y = square_width * y
                 if grid.maze[y][x][0] == 1:
                     pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x + square_width, top_right_y), line_width)
-                    grid.walls.append([(top_right_x, top_right_y), (top_right_x + square_width, top_right_y)])
                 if grid.maze[y][x][1] == 1:
                     pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x, top_right_y + square_width), line_width)
-                    grid.walls.append([(top_right_x, top_right_y), (top_right_x, top_right_y + square_width)])
                 if grid.maze[y][x][2] == 1:
                     pygame.draw.line(win, darkorange, (top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width), line_width)
-                    grid.walls.append([(top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width)])
                 if grid.maze[y][x][3] == 1:
                     pygame.draw.line(win, darkorange, (top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width), line_width)
-                    grid.walls.append([(top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width)])
-
-        square_width = int(height / grid.width)
-        draw_point = (width - (square_width * grid.width)) / 2
-        line_width = 5
-        for x in range(0, grid.width):
-            for y in range(0, grid.width):
-                top_right_x = (draw_point + (x * square_width))
-                top_right_y = square_width * y
-                if grid.maze[y][x][0] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x + square_width, top_right_y), line_width)
-                    grid.walls.append([(top_right_x, top_right_y), (top_right_x + square_width, top_right_y)])
-                if grid.maze[y][x][1] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x, top_right_y + square_width), line_width)
-                    grid.walls.append([(top_right_x, top_right_y), (top_right_x, top_right_y + square_width)])
-                if grid.maze[y][x][2] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width), line_width)
-                    grid.walls.append([(top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width)])
-                if grid.maze[y][x][3] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width), line_width)
-    else:
-        square_width = 0
-    grid.walls = list(set(map(tuple, grid.walls)))
-    return grid.walls, square_width, locations
 
 
 def create_enemy(walls, difficulty, locations, square_width, window):
     enemies = []
+    used_spots = [None]
+    y = None
     if difficulty == 1:
         for ID in range(0, 2):
-            y = random.randint(0, (grid.width ** 2 - 1))
+            while y in used_spots:
+                y = random.randint(0, (grid.width ** 2 - 1))
+            used_spots.append(y)
             location = locations[y]
             enemy = Enemy.Enemy(ID, "sprites/blob.png", square_width, difficulty, location, "monkey")
             enemy.create_rays(walls)
             enemies.append((enemy, y))
+        for enemy in enemies:
+            draw_rays(enemy[0], window)
+        for enemy in enemies:
+            draw_enemy(enemy[0], window)
     return enemies
 
 
-def draw_enemy(enemies, window):
-    for enemy in enemies:
-        enemy[0].draw_rays(window)
-    for enemy in enemies:
-        enemy[0].draw(window)
+def draw_enemy(enemy, window):
+    enemy.draw(window)
+
+
+def draw_rays(enemy, window):
+    enemy.draw_rays(window)
 
 
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(20)
+        grid = Grid.Grid(10)
         grid.CreateMaze()
     run = True
-    walls, square_width, locations = draw_grid(win, grid)
+    win.fill(whitegreen)
+    locations, walls, square_width = collect_locations(win, grid)
     enemies = create_enemy(walls, difficulty, locations, square_width, win)
+    draw_grid(grid, win)
     while run:
         pygame.display.update()
-        win.fill(whitegreen)
         clock.tick(144)
         run = check_if_quit(run)
-        walls, square_width, locations = draw_grid(win, grid)
-        draw_enemy(enemies, win)
 
 
 def menu(run):
@@ -204,5 +196,6 @@ def menu(run):
     return run
 
 
+running = True
 running = menu(running)
 pygame.quit()

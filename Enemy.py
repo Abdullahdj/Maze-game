@@ -21,23 +21,24 @@ white = (255, 255, 255)
 
 
 class Enemy:
-    def __init__(self, id, sprite, size, difficulty, location, breed):
+    def __init__(self, id, sprite, size, difficulty, location, breed, health=10):
         self.ID = id
+        self.health = health
         self.breed = breed
         self.location = location
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
-        self.rect = self.sprite.get_rect()
         self.rays = []
         self.size = size
         self.direction = random.randint(0, 3)
 
     def create_rays(self, walls):
+        qty = 2
         if self.difficulty == 1:
-            fov = 1
+            fov = 360
             start_angle = (self.direction * 90) - (fov/2)
-            for angle in range(0, int(fov)*7):
-                ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), 500, angle/7 + start_angle)
+            for angle in range(0, int(fov)*qty):
+                ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * 5.5, angle/qty + start_angle)
                 ray.cast(walls)
                 self.rays.append(ray)
 
@@ -47,4 +48,4 @@ class Enemy:
 
     def draw_rays(self, window):
         for ray in self.rays:
-            pygame.draw.aaline(window, red, ray.start, ray.end)
+            pygame.draw.aaline(window, purple, ray.start, ray.end)

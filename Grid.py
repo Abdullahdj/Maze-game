@@ -1,6 +1,6 @@
 import random
 import Stack
-
+import time
 
 class Grid:
 
@@ -12,6 +12,55 @@ class Grid:
         self.walls = None
         self.maze = []
         self.layer = []
+        self.adj_matrix = None
+        self.adj_list = None
+
+    def CreateMatrix(self):
+        matrix = []
+        matrix_map = {}
+        index = 0
+        x = 0
+        y = 0
+        for row in self.maze:
+            x = 0
+            for node in row:
+                matrix_map[(y, x)] = index
+                x += 1
+                index += 1
+            y += 1
+        for k in range(0, self.width**2):
+            matrix.append([])
+            for i in range(0, self.width**2):
+                matrix[k].append(0)
+        # Created matrix size now to create connections (may be able to connect these two but for now ima do this)
+        x = 0
+        y = 0
+        for row in self.maze:
+            for node in row:
+                current_index = matrix_map[(y, x)]
+                if node[0] == 0:                                        # this may cause a syntax error but the code should never enter the loop if the condition for the error is met
+                    target_index = matrix_map[(y - 1, x)]
+                    matrix[current_index][target_index] = 1
+                    matrix[target_index][current_index] = 1
+                if node[1] == 0:
+                    target_index = matrix_map[(y, x - 1)]
+                    matrix[current_index][target_index] = 1
+                    matrix[target_index][current_index] = 1
+                if node[2] == 0:
+                    target_index = matrix_map[(y + 1, x)]
+                    matrix[current_index][target_index] = 1
+                    matrix[target_index][current_index] = 1
+                if node[3] == 0:
+                    target_index = matrix_map[(y, x + 1)]
+                    matrix[current_index][target_index] = 1
+                    matrix[target_index][current_index] = 1
+                x += 1
+                x = x % self.width
+            y += 1
+            y = y % self.width
+        self.adj_matrix = matrix
+
+
 
     def OverlapMaze(self):
         for y in range(0, self.width):
@@ -166,3 +215,12 @@ class Grid:
                 if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
                     break
                 Position = random.choice(UnvisitedNodes)
+
+
+x = Grid(50)
+x.CreateMaze()
+c = time.time()
+print("gay")
+x.CreateMatrix()
+c -= time.time()
+print(c)

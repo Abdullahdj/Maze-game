@@ -75,8 +75,8 @@ class Ray:
             self.end = closest[0]
         return closest[0]
 
-"""
 
+"""
 def alter_window(aspect_ratio):
     screen_info = pygame.display.Info()
     screen_w = screen_info.current_w
@@ -103,7 +103,7 @@ def check_if_quit(run):
         return run
     return run
 
-bob = Enemy.Enemy("sprites/blob.png", 1, (500, 750), "snot")
+
 wall1 = ((400, 200), (500, 750))
 wall2 = ((300, 150), (700, 800))
 wall3 = ((1800, 900), (800, 30))
@@ -115,21 +115,17 @@ win, width, height = alter_window(9/16)
 win.fill(white)
 
 while run:
-    bob.draw(win)
     pygame.display.update()
     clock.tick(144)
     run = check_if_quit(run)
     ray = Ray((1000, 540), 5000, 180)
     ray.end = pygame.mouse.get_pos()
     yo = ray.cast(walls)
-    rayman = Ray(pygame.mouse.get_pos(), 500, 90)
-    for each in bob.rays:
-        yo = each.cast(walls)
-        if yo:
-            each.end = yo
-            pygame.draw.aaline(win, darkorange, each.start, each.end, 50)
-        else:
-            pygame.draw.aaline(win, blue, each.start, each.end, 50)
+    if yo:
+        ray.end = yo
+        pygame.draw.aaline(win, darkorange, ray.start, ray.end, 50)
+    else:
+        pygame.draw.aaline(win, blue, ray.start, ray.end, 50)
 
     pygame.draw.line(win, purple, wall1[0], wall1[1], 10)
     pygame.draw.line(win, purple, wall2[0], wall2[1], 10)
