@@ -42,9 +42,10 @@ def check_if_quit(run):
         if event.type == pygame.QUIT:
             run = False
             return run
-    if keys[pygame.K_ESCAPE]:
-        run = False
-        return run
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                run = False
+                return run
     return run
 
 
@@ -116,7 +117,7 @@ def draw_grid(grid, win):
                     pygame.draw.line(win, darkorange, (top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width), line_width)
 
 
-def create_enemy(walls, difficulty, locations, square_width, window):
+def create_enemy(walls, difficulty, locations, square_width, grid, window):
     enemies = []
     used_spots = [None]
     y = None
@@ -147,12 +148,12 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(10)
+        grid = Grid.Grid(2)
         grid.CreateMaze()
     run = True
     win.fill(whitegreen)
     locations, walls, square_width = collect_locations(win, grid)
-    enemies = create_enemy(walls, difficulty, locations, square_width, win)
+    enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
     draw_grid(grid, win)
     while run:
         pygame.display.update()
@@ -161,7 +162,7 @@ def game_loop(win, difficulty=1, savefile=""):
 
 
 def menu(run):
-    win, width, height = alter_window(9/16)
+    win, width, height = alter_window(4/4)
     # buttons all in terms of height and width of screen
     quit = Button.Button(int(width/20), height*(12/15), int(width/3), int(height/10), white, black, "Quit")
     play = Button.Button(int(width/20), int(height*(8/15)), int(width/3), int(height/10), white, black, "Play")
@@ -178,6 +179,7 @@ def menu(run):
         play_clicked = play.check_clicked()
         play.draw_button(win)
         if play_clicked:
+            pygame.display.update()
             game_loop(win)
 
         # options
@@ -192,6 +194,7 @@ def menu(run):
 
         # event actors
         if quit_clicked:
+            pygame.display.update()
             run = False
     return run
 

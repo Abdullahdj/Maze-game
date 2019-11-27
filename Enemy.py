@@ -33,9 +33,9 @@ class Enemy:
         self.direction = random.randint(0, 3)
 
     def create_rays(self, walls):
-        qty = 2
+        qty = 1
         if self.difficulty == 1:
-            fov = 360
+            fov = 60
             start_angle = (self.direction * 90) - (fov/2)
             for angle in range(0, int(fov)*qty):
                 ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * 5.5, angle/qty + start_angle)

@@ -23,9 +23,7 @@ class Stack:
         self.stack = []
 
     def isempty(self):
-        if len(self.stack) == 0:
-            return True
-        return False
+        return len(self.stack) == 0
 
     def push(self, value):
         self.stack.append(value)
