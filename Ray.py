@@ -37,7 +37,7 @@ class Ray:
         self.angle = to_rad(angle)
         self.end = (start_pos[0] + length * (math.sin(self.angle)), start_pos[1] + length * (math.cos(self.angle)))
 
-    def cast(self, walls):
+    def cast(self, walls, index_length):
         wall_points = {}
         for wall in walls:
             x1 = wall[0][0]

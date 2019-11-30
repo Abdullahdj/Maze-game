@@ -102,7 +102,7 @@ def draw_grid(grid, win):
     if width >= height:
         square_width = int(height / grid.width)
         draw_point = (width - (square_width * grid.width))/2
-        line_width = 5
+        line_width = 3
         for x in range(0, grid.width):
             for y in range(0, grid.width):
                 top_right_x = (draw_point + (x * square_width))
@@ -148,7 +148,7 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(2)
+        grid = Grid.Grid(100)
         grid.CreateMaze()
     run = True
     win.fill(whitegreen)
@@ -162,7 +162,7 @@ def game_loop(win, difficulty=1, savefile=""):
 
 
 def menu(run):
-    win, width, height = alter_window(4/4)
+    win, width, height = alter_window(9/16)
     # buttons all in terms of height and width of screen
     quit = Button.Button(int(width/20), height*(12/15), int(width/3), int(height/10), white, black, "Quit")
     play = Button.Button(int(width/20), int(height*(8/15)), int(width/3), int(height/10), white, black, "Play")
@@ -179,6 +179,8 @@ def menu(run):
         play_clicked = play.check_clicked()
         play.draw_button(win)
         if play_clicked:
+            quit.draw_button(win)
+            options.draw_button(win)
             pygame.display.update()
             game_loop(win)
 

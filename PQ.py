@@ -16,6 +16,12 @@ class Heap:
         else:
             return False
 
+    def InQueue(self, node):
+        for item in self.queue:
+            if item[1][1] == node:
+                return True
+        return False
+
     def push(self, weighting, node, source=None):
         heapq.heappush(self.queue, (weighting, (source, node)))
 
@@ -24,8 +30,9 @@ class Heap:
 
     def edit(self, weighting, node, source):
         for item in self.queue:
-            if item[1][1] == node:            # perhaps add a raise statement to raise error if new eight higher than previous
-                self.queue.remove(item)
-                self.push(weighting, node, source)
+            if item[1][1] == node:        # perhaps add a raise statement to raise error if new weight higher than previous
+                if item[0] > weighting:
+                    self.queue.remove(item)
+                    heapq.heapify(self.queue)         # May cause issues with heapq import.    keep that in mind
+                    self.push(weighting, node, source)
                 break
-

@@ -1,6 +1,8 @@
 import random
 import Stack
 import time
+import PQ
+import heapq
 
 
 class Grid:
@@ -16,7 +18,6 @@ class Grid:
         self.matrix = None
         self.matrix_map = None
         self.adj_list = None
-
 
     def OverlapMaze(self):
         for y in range(0, self.width):
@@ -100,11 +101,13 @@ class Grid:
             OmitList = []
             UnvisitableNodesExist = True
             Position = [int(self.width/2), int(self.width/2)]
-            Exit = [self.width-1, self.width-1]    # will adjust to be random later this is for testing purposes
+            Exit = [int(self.width/2), int(self.width/2)]    # will adjust to be random later this is for testing purposes
             while UnvisitableNodesExist:
                 self.CreateGridCopy()
-                while Position != Exit:
+                while (Position != Exit):
                     AmountOfDirections, Direction = self.ChooseDirection(Position, history, Omit, OmitList)   # Directions in order correspond to NWSE     Choose random direction
+                    if self.maze[Position[0]][Position[1]].count(0) > 3:
+                        break
                     Omit = None
                     # Break walls ,change position ,add last position to stack
                     if Direction == 0:
@@ -172,13 +175,12 @@ class Grid:
                 if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
                     break
                 Position = random.choice(UnvisitedNodes)
-        self.CreateMatrix()
+        "self.CreateMatrix()"
 
     def CreateMatrix(self):
         matrix = []
         matrix_map = {}
         index = 0
-        x = 0
         y = 0
         for row in self.maze:
             x = 0
@@ -220,3 +222,56 @@ class Grid:
             y = y % self.width
         self.matrix_map = matrix_map
         self.matrix = matrix
+
+    def GetMatrixIndex(self, location):      # location looks like (x,y)
+        return self.matrix_map[location]
+
+    def GetMazeLocation(self, index):
+        for key, value in self.matrix_map.items():
+            if index == value:
+                return key
+
+    def GetNeighbours(self, node):
+        index = self.GetMatrixIndex(node)
+        neighbours = PQ.Heap()
+        for finder in range(0, self.width**2):
+            if self.matrix[index][finder] != float("inf"):         # only nodes that haven't been visited (yet to be implemented)
+                neighbours.push(self.matrix[index][finder], self.GetMazeLocation(finder))
+        return neighbours
+
+    def PathFinding(self, source, exit):
+        unvisited = PQ.Heap()
+        visited = PQ.Heap()
+        # create queue filled with unvisited nodes
+        for location in self.positions:
+            unvisited.push(float("inf"), location)
+        unvisited.edit(0, source, None)
+
+        # start the simulation MWhahahahaaahaahahaaha
+        while not visited.InQueue(exit) and not unvisited.empty():
+            current_node = unvisited.pull()
+            print(current_node)
+            visited.push(current_node[0], current_node[1][1], current_node[1][0])
+            neighbours = self.GetNeighbours(current_node[1][1])
+            print(" neighbours of above me dum lol", neighbours.queue)
+            while not neighbours.empty():
+                neighbour = neighbours.pull()
+                if not visited.InQueue(neighbour[1][1]):
+                    distance_to = current_node[0] + neighbour[0]
+                    unvisited.edit(distance_to, neighbour[1][1], current_node[1][1])
+
+        path = []
+        weight = visited.queue[-1][0]
+        path.append(exit)
+        current_node = visited.queue[-1][1][0]
+        while current_node != source:
+            for item in visited.queue:
+                if item[1][1] == current_node:
+                    path.append(item[1][1])
+                    current_node = item[1][0]
+                    break
+        path.reverse()
+        return path, weight
+
+
+# Change maze generation to make the generator stop once the snake reaches an open node
