@@ -81,7 +81,7 @@ def collect_locations(win, grid):
         draw_point = (width - (square_width * grid.width)) / 2
         for x in range(0, grid.width):
             for y in range(0, grid.width):
-                pygame.draw.rect(win, whiteblue, (draw_point + (x * square_width), square_width*y, square_width, square_width))
+                pygame.draw.rect(win, blue, (draw_point + (x * square_width), square_width*y, square_width, square_width))
                 top_right_x = (draw_point + (x * square_width))
                 top_right_y = square_width*y
                 locations.append((top_right_x, top_right_y))
@@ -108,13 +108,13 @@ def draw_grid(grid, win):
                 top_right_x = (draw_point + (x * square_width))
                 top_right_y = square_width * y
                 if grid.maze[y][x][0] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x + square_width, top_right_y), line_width)
+                    pygame.draw.line(win, black, (top_right_x, top_right_y), (top_right_x + square_width, top_right_y), line_width)
                 if grid.maze[y][x][1] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y), (top_right_x, top_right_y + square_width), line_width)
+                    pygame.draw.line(win, black, (top_right_x, top_right_y), (top_right_x, top_right_y + square_width), line_width)
                 if grid.maze[y][x][2] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width), line_width)
+                    pygame.draw.line(win, black, (top_right_x, top_right_y + square_width), (top_right_x + square_width, top_right_y + square_width), line_width)
                 if grid.maze[y][x][3] == 1:
-                    pygame.draw.line(win, darkorange, (top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width), line_width)
+                    pygame.draw.line(win, black, (top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width), line_width)
 
 
 def create_enemy(walls, difficulty, locations, square_width, grid, window):
@@ -148,10 +148,10 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(100)
+        grid = Grid.Grid(10)
         grid.CreateMaze()
     run = True
-    win.fill(whitegreen)
+    win.fill(purple)
     locations, walls, square_width = collect_locations(win, grid)
     enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
     draw_grid(grid, win)

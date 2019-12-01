@@ -175,7 +175,7 @@ class Grid:
                 if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
                     break
                 Position = random.choice(UnvisitedNodes)
-        "self.CreateMatrix()"
+        self.CreateMatrix()
 
     def CreateMatrix(self):
         matrix = []
@@ -250,10 +250,8 @@ class Grid:
         # start the simulation MWhahahahaaahaahahaaha
         while not visited.InQueue(exit) and not unvisited.empty():
             current_node = unvisited.pull()
-            print(current_node)
             visited.push(current_node[0], current_node[1][1], current_node[1][0])
             neighbours = self.GetNeighbours(current_node[1][1])
-            print(" neighbours of above me dum lol", neighbours.queue)
             while not neighbours.empty():
                 neighbour = neighbours.pull()
                 if not visited.InQueue(neighbour[1][1]):
@@ -272,6 +270,3 @@ class Grid:
                     break
         path.reverse()
         return path, weight
-
-
-# Change maze generation to make the generator stop once the snake reaches an open node

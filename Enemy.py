@@ -33,12 +33,12 @@ class Enemy:
         self.direction = random.randint(0, 3)
 
     def create_rays(self, walls):
-        qty = 0
+        qty = 1
         raysize = 2
         if self.difficulty == 1:
             fov = 360
             start_angle = (self.direction * 90) - (fov/2)
-            for angle in range(0, int(fov)*qty):
+            for angle in range(0, int(fov)*qty+1):
                 ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (raysize + 0.5), angle/qty + start_angle)
                 ray.cast(walls, raysize)
                 self.rays.append(ray)
@@ -49,4 +49,4 @@ class Enemy:
 
     def draw_rays(self, window):
         for ray in self.rays:
-            pygame.draw.aaline(window, purple, ray.start, ray.end)
+            pygame.draw.aaline(window, white, ray.start, ray.end)

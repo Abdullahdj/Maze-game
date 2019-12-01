@@ -41,15 +41,21 @@ class Ray:
         wall_points = {}
         for wall in walls:
             x1 = wall[0][0]
-            x2 = wall[1][0]
             y1 = wall[0][1]
+            x2 = wall[1][0]
             y2 = wall[1][1]
 
             x3 = self.start[0]
-            x4 = self.end[0]
             y3 = self.start[1]
+            x4 = self.end[0]
             y4 = self.end[1]
 
+            # check if wall is even worth calculating (this is an efficiency improvement)
+            shortest_distance = abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / (((y2 - y1)**2) + ((x2 - x1)**2))**(1/2.0)
+            if shortest_distance > self.length:
+                continue
+
+            # actually calculate rays if above condition is not met
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
             if den != 0:
                 t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den
