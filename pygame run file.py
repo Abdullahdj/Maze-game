@@ -122,7 +122,7 @@ def create_enemy(walls, difficulty, locations, square_width, grid, window):
     used_spots = [None]
     y = None
     if difficulty == 1:
-        for ID in range(0, 2):
+        for ID in range(0, 1):
             while y in used_spots:
                 y = random.randint(0, (grid.width ** 2 - 1))
             used_spots.append(y)
@@ -148,7 +148,7 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(10)
+        grid = Grid.Grid(20)
         grid.CreateMaze()
     run = True
     win.fill(purple)

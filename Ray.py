@@ -6,6 +6,9 @@ import Grid
 import Button
 import Stack
 import Enemy
+import PQ
+import heapq
+import copy
 
 pygame.init()
 
@@ -37,9 +40,16 @@ class Ray:
         self.angle = to_rad(angle)
         self.end = (start_pos[0] + length * (math.sin(self.angle)), start_pos[1] + length * (math.cos(self.angle)))
 
-    def cast(self, walls, index_length):
+    def cast(self, wall_q):
         wall_points = {}
-        for wall in walls:
+        walls = copy.copy(wall_q)
+        for index in range(0, len(walls)):
+            try:
+                wall = walls.pop()
+                print(wall[0])
+                wall = wall[1]
+            except IndexError:
+                break
             x1 = wall[0][0]
             y1 = wall[0][1]
             x2 = wall[1][0]
@@ -49,11 +59,6 @@ class Ray:
             y3 = self.start[1]
             x4 = self.end[0]
             y4 = self.end[1]
-
-            # check if wall is even worth calculating (this is an efficiency improvement)
-            shortest_distance = abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / (((y2 - y1)**2) + ((x2 - x1)**2))**(1/2.0)
-            if shortest_distance > self.length:
-                continue
 
             # actually calculate rays if above condition is not met
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)

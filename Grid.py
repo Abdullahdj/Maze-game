@@ -106,7 +106,7 @@ class Grid:
                 self.CreateGridCopy()
                 while (Position != Exit):
                     AmountOfDirections, Direction = self.ChooseDirection(Position, history, Omit, OmitList)   # Directions in order correspond to NWSE     Choose random direction
-                    if self.maze[Position[0]][Position[1]].count(0) > 3:
+                    if self.maze[Position[0]][Position[1]].count(0) > 2:
                         break
                     Omit = None
                     # Break walls ,change position ,add last position to stack

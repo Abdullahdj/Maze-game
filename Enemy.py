@@ -6,6 +6,7 @@ import Ray
 import Grid
 import Button
 import Stack
+import heapq
 
 darkorange = (255, 140, 0)
 lightgreen = (0, 255, 127)
@@ -33,14 +34,31 @@ class Enemy:
         self.direction = random.randint(0, 3)
 
     def create_rays(self, walls):
-        qty = 1
         raysize = 2
+        wall_q = []
+        heapq.heapify(wall_q)
+        for wall in walls:
+            x1 = wall[0][0]
+            y1 = wall[0][1]
+            x2 = wall[1][0]
+            y2 = wall[1][1]
+
+            x3 = self.location[0]
+            y3 = self.location[1]
+
+            # check if wall is even worth calculating (this is an efficiency improvement)
+            shortest_distance = abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** (1 / 2.0)
+            if shortest_distance <= self.size * (raysize + 0.5):
+                heapq.heappush(wall_q, (shortest_distance, wall))
+
+        # previous code
+        qty = 1
         if self.difficulty == 1:
             fov = 360
             start_angle = (self.direction * 90) - (fov/2)
-            for angle in range(0, int(fov)*qty+1):
+            for angle in range(0, int(fov)*qty):
                 ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (raysize + 0.5), angle/qty + start_angle)
-                ray.cast(walls, raysize)
+                ray.cast(wall_q)
                 self.rays.append(ray)
 
     def draw(self, window):
