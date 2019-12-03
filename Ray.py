@@ -43,11 +43,10 @@ class Ray:
     def cast(self, wall_q):
         wall_points = {}
         walls = copy.copy(wall_q)
+        heapq.heapify(walls)
         for index in range(0, len(walls)):
             try:
-                wall = walls.pop()
-                print(wall[0])
-                wall = wall[1]
+                wall = heapq.heappop(walls)[1]
             except IndexError:
                 break
             x1 = wall[0][0]

@@ -33,8 +33,7 @@ class Enemy:
         self.size = size
         self.direction = random.randint(0, 3)
 
-    def create_rays(self, walls):
-        raysize = 2
+    def create_heap(self, walls, raysize):
         wall_q = []
         heapq.heapify(wall_q)
         for wall in walls:
@@ -42,15 +41,18 @@ class Enemy:
             y1 = wall[0][1]
             x2 = wall[1][0]
             y2 = wall[1][1]
-
-            x3 = self.location[0]
-            y3 = self.location[1]
-
+            x3 = self.location[0] + self.size / 2
+            y3 = self.location[1] + self.size / 2
             # check if wall is even worth calculating (this is an efficiency improvement)
             shortest_distance = abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** (1 / 2.0)
-            if shortest_distance <= self.size * (raysize + 0.5):
+            if shortest_distance <= self.size * (raysize + 1.5):
                 heapq.heappush(wall_q, (shortest_distance, wall))
+        return wall_q
 
+    def create_rays(self, walls):
+        self.rays = []
+        raysize = 1
+        wall_q = self.create_heap(walls, raysize)
         # previous code
         qty = 1
         if self.difficulty == 1:

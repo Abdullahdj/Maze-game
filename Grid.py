@@ -15,9 +15,17 @@ class Grid:
         self.walls = None
         self.maze = []
         self.layer = []
+        self.template = []      # used for efficiency better to copy a template of an all blocked off grid then to recreate it.
         self.matrix = None
         self.matrix_map = None
         self.adj_list = None
+
+    def CreateTemplate(self):
+        self.template = []
+        for x in range(0, self.width):
+            self.template.append([])
+            for y in range(0, self.width):
+                self.template[x].append([1, 1, 1, 1])
 
     def OverlapMaze(self):
         for y in range(0, self.width):
@@ -27,18 +35,10 @@ class Grid:
                         self.maze[y][x][nwse] = 0
 
     def CreateGrid(self):
-        self.maze = []
-        for x in range(0, self.width):
-            self.maze.append([])
-            for y in range(0, self.width):
-                self.maze[x].append([1, 1, 1, 1])
+        self.maze = self.template.copy()
 
     def CreateGridCopy(self):
-        self.layer = []
-        for x in range(0, self.width):
-            self.layer.append([])
-            for y in range(0, self.width):
-                self.layer[x].append([1, 1, 1, 1])  # Need mutable array (fixed size) for this can only get immutable tuple      #In format NWSE(compass)   #indexes in (y,x) format (for graphical output)
+        self.layer = self.template.copy()  # Need mutable array (fixed size) for this can only get immutable tuple      #In format NWSE(compass)   #indexes in (y,x) format (for graphical output)
 
     def ChooseDirection(self, current_position, history, omit, omitlist):
         PossibleDirections = [0, 1, 2, 3]
@@ -94,6 +94,7 @@ class Grid:
         return unvisitable_nodes_exist, coordinates
 
     def CreateMaze(self):
+        self.CreateTemplate()
         self.CreateGrid()
         if self.width != 1:
             history = Stack.Stack()      # Note that data in the History stack should be in [y,x] format
@@ -101,7 +102,7 @@ class Grid:
             OmitList = []
             UnvisitableNodesExist = True
             Position = [int(self.width/2), int(self.width/2)]
-            Exit = [int(self.width/2), int(self.width/2)]    # will adjust to be random later this is for testing purposes
+            Exit = [int(self.width/2), int(self.width/2)]
             while UnvisitableNodesExist:
                 self.CreateGridCopy()
                 while (Position != Exit):
@@ -175,7 +176,7 @@ class Grid:
                 if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
                     break
                 Position = random.choice(UnvisitedNodes)
-        self.CreateMatrix()
+        "self.CreateMatrix()"
 
     def CreateMatrix(self):
         matrix = []

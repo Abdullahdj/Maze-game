@@ -81,7 +81,6 @@ def collect_locations(win, grid):
         draw_point = (width - (square_width * grid.width)) / 2
         for x in range(0, grid.width):
             for y in range(0, grid.width):
-                pygame.draw.rect(win, blue, (draw_point + (x * square_width), square_width*y, square_width, square_width))
                 top_right_x = (draw_point + (x * square_width))
                 top_right_y = square_width*y
                 locations.append((top_right_x, top_right_y))
@@ -95,6 +94,17 @@ def collect_locations(win, grid):
                     grid.walls.append([(top_right_x + square_width, top_right_y), (top_right_x + square_width, top_right_y + square_width)])
         grid.walls = list(set(map(tuple, grid.walls)))
         return locations, grid.walls, square_width
+
+
+def draw_back(grid, win):
+    width, height = win.get_size()
+    if width >= height:
+        square_width = int(height / grid.width)
+        draw_point = (width - (square_width * grid.width))/2
+        line_width = 3
+        for x in range(0, grid.width):
+            for y in range(0, grid.width):
+                pygame.draw.rect(win, blue, (draw_point + (x * square_width), square_width * y, square_width, square_width))
 
 
 def draw_grid(grid, win):
@@ -148,16 +158,26 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(20)
+        grid = Grid.Grid(50)
         grid.CreateMaze()
     run = True
     win.fill(purple)
     locations, walls, square_width = collect_locations(win, grid)
+    draw_back(grid, win)
     enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
+
     draw_grid(grid, win)
     while run:
+        """for enemy in enemies:
+            flip = random.randint(0, grid.width**2 - 1)
+            enemy[0].location = (locations[flip][0], locations[flip][1])
+            enemy[0].create_rays(grid.walls)
+            draw_back(grid, win)
+            draw_rays(enemy[0], win)
+            draw_enemy(enemy[0], win)
+        draw_grid(grid, win)"""
         pygame.display.update()
-        clock.tick(144)
+        clock.tick(1000)
         run = check_if_quit(run)
 
 
