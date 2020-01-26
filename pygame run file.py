@@ -22,6 +22,7 @@ blue = (0, 0, 255)
 lightblue = (0, 125, 255)
 whiteblue = (0, 200, 255)
 white = (255, 255, 255)
+pink = (255, 105, 180)
 
 
 def text_objects(text, font):
@@ -77,7 +78,7 @@ def collect_locations(win, grid):
     locations = []
     width, height = win.get_size()
     if width >= height:
-        square_width = int(height / grid.width)
+        square_width = (height / grid.width)
         draw_point = (width - (square_width * grid.width)) / 2
         for x in range(0, grid.width):
             for y in range(0, grid.width):
@@ -99,20 +100,17 @@ def collect_locations(win, grid):
 def draw_back(grid, win):
     width, height = win.get_size()
     if width >= height:
-        square_width = int(height / grid.width)
-        draw_point = (width - (square_width * grid.width))/2
-        line_width = 3
-        for x in range(0, grid.width):
-            for y in range(0, grid.width):
-                pygame.draw.rect(win, blue, (draw_point + (x * square_width), square_width * y, square_width, square_width))
+        square_width = (height / grid.width)
+        draw_point = (width - (square_width * grid.width)) / 2
+        pygame.draw.rect(win, pink, (draw_point, 0, height, height))
 
 
 def draw_grid(grid, win):
     width, height = win.get_size()
     if width >= height:
-        square_width = int(height / grid.width)
+        square_width = (height / grid.width)
         draw_point = (width - (square_width * grid.width))/2
-        line_width = 3
+        line_width = 1
         for x in range(0, grid.width):
             for y in range(0, grid.width):
                 top_right_x = (draw_point + (x * square_width))
@@ -137,7 +135,7 @@ def create_enemy(walls, difficulty, locations, square_width, grid, window):
                 y = random.randint(0, (grid.width ** 2 - 1))
             used_spots.append(y)
             location = locations[y]
-            enemy = Enemy.Enemy(ID, "sprites/blob.png", square_width, difficulty, location, "monkey")
+            enemy = Enemy.Enemy(ID, "sprites/blob.png", int(square_width), difficulty, location, "monkey")
             enemy.create_rays(walls)
             enemies.append((enemy, y))
         for enemy in enemies:
@@ -151,6 +149,39 @@ def draw_enemy(enemy, window):
     enemy.draw(window)
 
 
+def draw_to_mouse(grid, locations, square_width, win, prev_position, player=(0, 0)):
+    mouse_pos = pygame.mouse.get_pos()
+    block = None
+    index = None
+    for i, location in enumerate(locations):
+        if (location[0] <= mouse_pos[0] < location[0] + square_width) and (location[1] <= mouse_pos[1] < location[1] + square_width):
+            block = location
+            index = i
+            break
+    if block and grid.positions[index] != prev_position:
+        print(grid.positions[index])
+        global path
+        path = grid.PathFinding(player, grid.positions[index])
+        draw_path(grid, path, locations, square_width, player, win)
+        print(path)
+    if index is not None:
+        return grid.positions[index]
+    else:
+        return None
+
+
+def draw_path(grid, path, locations, square_width, player, win):
+    for i, node in enumerate(path[0]):
+        location1 = locations[grid.positions.index(node)]
+        try:
+            location2 = locations[grid.positions.index(path[0][i+1])]
+            pygame.draw.line(win, red, ((location1[0] + square_width/2), (location1[1] + square_width/2)), ((location2[0] + square_width/2), (location2[1] + square_width/2)), 10)
+        except IndexError:
+            break
+        pygame.display.update()
+
+
+
 def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
@@ -158,16 +189,20 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(50)
+        grid = Grid.Grid(3)
         grid.CreateMaze()
+        grid.CreateMatrix()
     run = True
     win.fill(purple)
+    global locations
     locations, walls, square_width = collect_locations(win, grid)
     draw_back(grid, win)
     enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
-
     draw_grid(grid, win)
+    mouse_position = None
     while run:
+        if pygame.mouse.get_rel() != (0, 0):
+            mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, (0, 0))
         """for enemy in enemies:
             flip = random.randint(0, grid.width**2 - 1)
             enemy[0].location = (locations[flip][0], locations[flip][1])
@@ -177,7 +212,7 @@ def game_loop(win, difficulty=1, savefile=""):
             draw_enemy(enemy[0], win)
         draw_grid(grid, win)"""
         pygame.display.update()
-        clock.tick(1000)
+        clock.tick(144)
         run = check_if_quit(run)
 
 

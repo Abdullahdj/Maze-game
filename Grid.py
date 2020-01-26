@@ -11,7 +11,7 @@ class Grid:
             self.width = 1
         else:
             self.width = int(width)
-        self.positions = []
+        self.positions = []  # positions are like indices on the grid 2d array and these match 1 to 1 with locations ("ordinally") with locations from pygame run file
         self.walls = None
         self.maze = []
         self.layer = []
@@ -57,7 +57,7 @@ class Grid:
             PossibleDirections.remove(3)
 
         # So far enough to omit impossible directions however stack needs to be implemented first before proceeding to remove visited directions
-        # My code was broken because python is a bad bad language
+        # My code was broken because python is a bad bad language (implicit pass by)
         copylist = PossibleDirections[:]
         # Check for previously visited paths using history Stack
         for direction in copylist:
@@ -107,7 +107,7 @@ class Grid:
                 self.CreateGridCopy()
                 while (Position != Exit):
                     AmountOfDirections, Direction = self.ChooseDirection(Position, history, Omit, OmitList)   # Directions in order correspond to NWSE     Choose random direction
-                    if self.maze[Position[0]][Position[1]].count(0) > 2:
+                    if self.maze[Position[0]][Position[1]].count(0) > 3:  # by changing the value checked against for this if statement, you can control how sparse the maze will be
                         break
                     Omit = None
                     # Break walls ,change position ,add last position to stack
@@ -173,7 +173,7 @@ class Grid:
                 Omit = None
                 OmitList = []
                 UnvisitableNodesExist, UnvisitedNodes = self.CheckUnvisitedNode()
-                if UnvisitableNodesExist == False:      # Because for some reason the retarded program named python doesn't realise it's FALSE WTF
+                if UnvisitableNodesExist == False:      # Because for some reason dumb language named python doesn't realise it's FALSE WHY!!!
                     break
                 Position = random.choice(UnvisitedNodes)
         "self.CreateMatrix()"
@@ -240,6 +240,7 @@ class Grid:
                 neighbours.push(self.matrix[index][finder], self.GetMazeLocation(finder))
         return neighbours
 
+    # must be fixed there is issue with reverse path finding (the positions are interpreted the wrong way as (y,x))
     def PathFinding(self, source, exit):
         unvisited = PQ.Heap()
         visited = PQ.Heap()
@@ -269,5 +270,6 @@ class Grid:
                     path.append(item[1][1])
                     current_node = item[1][0]
                     break
+        path.append(source)
         path.reverse()
         return path, weight

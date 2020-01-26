@@ -25,6 +25,7 @@ blue = (0, 0, 255)
 lightblue = (0, 125, 255)
 whiteblue = (0, 200, 255)
 white = (255, 255, 255)
+pink = (255, 105, 180)
 
 
 def to_rad(angle):
@@ -40,7 +41,7 @@ class Ray:
         self.angle = to_rad(angle)
         self.end = (start_pos[0] + length * (math.sin(self.angle)), start_pos[1] + length * (math.cos(self.angle)))
 
-    def cast(self, wall_q):
+    def cast(self, wall_q):         # relies on enemy class for creating a wall queue which is a problem
         wall_points = {}
         walls = copy.copy(wall_q)
         heapq.heapify(walls)
@@ -59,7 +60,6 @@ class Ray:
             x4 = self.end[0]
             y4 = self.end[1]
 
-            # actually calculate rays if above condition is not met
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
             if den != 0:
                 t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den

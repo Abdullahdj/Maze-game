@@ -19,6 +19,7 @@ blue = (0, 0, 255)
 lightblue = (0, 125, 255)
 whiteblue = (0, 200, 255)
 white = (255, 255, 255)
+pink = (255, 105, 180)
 
 
 class Enemy:
@@ -51,10 +52,9 @@ class Enemy:
 
     def create_rays(self, walls):
         self.rays = []
-        raysize = 1
+        raysize = 10
         wall_q = self.create_heap(walls, raysize)
-        # previous code
-        qty = 1
+        qty = 5
         if self.difficulty == 1:
             fov = 360
             start_angle = (self.direction * 90) - (fov/2)
@@ -69,4 +69,4 @@ class Enemy:
 
     def draw_rays(self, window):
         for ray in self.rays:
-            pygame.draw.aaline(window, white, ray.start, ray.end)
+            pygame.draw.aaline(window, blue, ray.start, ray.end)
