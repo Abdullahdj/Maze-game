@@ -149,21 +149,27 @@ def draw_enemy(enemy, window):
     enemy.draw(window)
 
 
-def draw_to_mouse(grid, locations, square_width, win, prev_position, player=(0, 0)):
+def Coordinates(square_width):
     mouse_pos = pygame.mouse.get_pos()
     block = None
     index = None
     for i, location in enumerate(locations):
-        if (location[0] <= mouse_pos[0] < location[0] + square_width) and (location[1] <= mouse_pos[1] < location[1] + square_width):
+        if (location[0] <= mouse_pos[0] < location[0] + square_width) and (
+                location[1] <= mouse_pos[1] < location[1] + square_width):
             block = location
             index = i
             break
+    return block, index
+
+
+def draw_to_mouse(grid, locations, square_width, win, prev_position, player=(0, 0)):
+
+    block, index = Coordinates(square_width)
+
     if block and grid.positions[index] != prev_position:
-        print(grid.positions[index])
         global path
         path = grid.PathFinding(player, grid.positions[index])
         draw_path(grid, path, locations, square_width, player, win)
-        print(path)
     if index is not None:
         return grid.positions[index]
     else:
@@ -178,7 +184,6 @@ def draw_path(grid, path, locations, square_width, player, win):
             pygame.draw.line(win, red, ((location1[0] + square_width/2), (location1[1] + square_width/2)), ((location2[0] + square_width/2), (location2[1] + square_width/2)), 10)
         except IndexError:
             break
-        pygame.display.update()
 
 
 
@@ -189,7 +194,7 @@ def draw_rays(enemy, window):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(3)
+        grid = Grid.Grid(20)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -199,9 +204,18 @@ def game_loop(win, difficulty=1, savefile=""):
     draw_back(grid, win)
     enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
     draw_grid(grid, win)
+
     mouse_position = None
     while run:
         if pygame.mouse.get_rel() != (0, 0):
+            block, index = Coordinates(square_width)
+            if block and grid.positions[index] != mouse_position:
+                draw_back(grid, win)
+                draw_grid(grid, win)
+                """for enemy in enemies:
+                    draw_rays(enemy[0], win)
+                for enemy in enemies:
+                    draw_enemy(enemy[0], win)"""
             mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, (0, 0))
         """for enemy in enemies:
             flip = random.randint(0, grid.width**2 - 1)

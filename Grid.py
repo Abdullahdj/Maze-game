@@ -5,6 +5,11 @@ import PQ
 import heapq
 
 
+def Reverse(tuples):
+    new_tup = tuples[::-1]
+    return new_tup
+
+
 class Grid:
     def __init__(self, width=0):
         if type(width) != int or int(width) == 0:
@@ -241,7 +246,11 @@ class Grid:
         return neighbours
 
     # must be fixed there is issue with reverse path finding (the positions are interpreted the wrong way as (y,x))
+    # problem somewhat solved now time for A star search
     def PathFinding(self, source, exit):
+        exit = Reverse(exit)
+        if source == exit:
+            return [[source], 0]
         unvisited = PQ.Heap()
         visited = PQ.Heap()
         # create queue filled with unvisited nodes
@@ -272,4 +281,5 @@ class Grid:
                     break
         path.append(source)
         path.reverse()
+        path = list(map(Reverse, path))
         return path, weight
