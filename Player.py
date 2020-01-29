@@ -27,3 +27,7 @@ class Player:
         self.location = location
         self.sprite = pygame.image.load(sprite)
         self.size = size
+
+    def draw(self, pixel_location, window):
+        self.sprite = pygame.transform.scale(self.sprite, (int(self.size), int(self.size)))
+        window.blit(self.sprite, pixel_location)

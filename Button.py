@@ -13,7 +13,7 @@ lightblue = (0, 125, 255)
 whiteblue = (0, 200, 255)
 white = (255, 255, 255)
 pink = (255, 105, 180)
-
+    
 
 def text_objects(text, font):
     text_surface = font.render(text, True, black)

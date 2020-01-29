@@ -41,7 +41,7 @@ class Ray:
         self.angle = to_rad(angle)
         self.end = (start_pos[0] + length * (math.sin(self.angle)), start_pos[1] + length * (math.cos(self.angle)))
 
-    def cast(self, wall_q):         # relies on enemy class for creating a wall queue which is a problem
+    def cast(self, wall_q):         # relies on enemy class for creating a wall queue
         wall_points = {}
         walls = copy.copy(wall_q)
         heapq.heapify(walls)

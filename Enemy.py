@@ -54,9 +54,9 @@ class Enemy:
         self.rays = []
         raysize = 10
         wall_q = self.create_heap(walls, raysize)
-        qty = 5
+        qty = 1
         if self.difficulty == 1:
-            fov = 360
+            fov = 30
             start_angle = (self.direction * 90) - (fov/2)
             for angle in range(0, int(fov)*qty):
                 ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (raysize + 0.5), angle/qty + start_angle)
