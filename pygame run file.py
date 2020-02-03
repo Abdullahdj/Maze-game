@@ -43,17 +43,19 @@ def message_display(text, centre, win):
     win.blit(text_surface, text_rect)
 
 
-def check_if_quit(run):
+def check_events(run):
+    press = False
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-            return run
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 run = False
-                return run
-    return run
+        elif event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                press = True
+    return run, press
 
 
 def background(colour1, ratio, win):
@@ -230,20 +232,24 @@ def game_loop(win, difficulty=1, savefile=""):
     player = create_player(grid, enemies, square_width)
     draw_grid(grid, win)
     mouse_position = None
+    pressed = False
 
     while run:
-
         if pygame.mouse.get_rel() != (0, 0):
             block, index = Coordinates(square_width, locations)
             if block and grid.positions[index] != mouse_position:
                 draw_back(grid, win)
                 draw_grid(grid, win)
             mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, player)
+
+        if pressed:
+            print(pressed)
+
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
         pygame.display.update()
         clock.tick(144)
-        run = check_if_quit(run)
+        run, pressed = check_events(run)
 
 
 def menu(run):
@@ -257,7 +263,7 @@ def menu(run):
         win.fill(whiteblue)
         background(lightblue, 10, win)
         clock.tick(144)
-        run = check_if_quit(run)
+        run = check_events(run)[0]
 # buttons
         # play
         play.check_on_button()

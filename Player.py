@@ -22,11 +22,12 @@ pink = (255, 105, 180)
 
 
 class Player:
-    def __init__(self, sprite, size, location, health=10):
+    def __init__(self, sprite, size, location, steps=5, health=10):
         self.health = health
         self.location = location
         self.sprite = pygame.image.load(sprite)
         self.size = size
+        self.steps = steps
 
     def draw(self, pixel_location, window):
         self.sprite = pygame.transform.scale(self.sprite, (int(self.size), int(self.size)))
