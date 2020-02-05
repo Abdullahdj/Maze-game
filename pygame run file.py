@@ -176,15 +176,19 @@ def Coordinates(square_width, locations):
 def draw_to_mouse(grid, locations, square_width, win, prev_position, player):
 
     block, index = Coordinates(square_width, locations)
-
+    path = None
     if block and grid.positions[index] != prev_position:
-        global path
-        path = grid.PathFinding(player.location, grid.positions[index])
+        path = get_path(grid, index, player)
         draw_path(grid, path, locations, square_width, player.location, win)
     if index is not None:
         return grid.positions[index]
     else:
         return None
+
+
+def get_path(grid, index, player):
+        path = grid.PathFinding(player.location, grid.positions[index])
+        return path
 
 
 def draw_path(grid, path, locations, square_width, player, win):
@@ -218,6 +222,20 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
+def animate(grid, locations, player, path, win):
+    prev_pixel_location = locations[grid.positions.index(player.location)]
+    for index, each in enumerate(path[0]):
+        while True:
+            draw_back(grid, win)
+            draw_grid(grid, win)
+            if prev_pixel_location[0] == pixel_location[0]:
+                distance =  
+        pixel_location = locations[grid.positions.index(player.location)]
+        player.draw(pixel_location, win)
+        player.location = each
+        pygame.display.update()
+
+
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
@@ -233,17 +251,22 @@ def game_loop(win, difficulty=1, savefile=""):
     draw_grid(grid, win)
     mouse_position = None
     pressed = False
+    turn = "player"
 
     while run:
         if pygame.mouse.get_rel() != (0, 0):
             block, index = Coordinates(square_width, locations)
-            if block and grid.positions[index] != mouse_position:
+            if block and grid.positions[index] != mouse_position:    # if statements are here so that the dijkstra is only run when the cursor changes block
                 draw_back(grid, win)
                 draw_grid(grid, win)
             mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, player)
 
-        if pressed:
-            print(pressed)
+        if pressed and turn == "player":
+            block, index = Coordinates(square_width, locations)
+            path = get_path(grid, index, player)
+            animate(grid, locations, player, path, win)
+            player.location = Reverse(grid.positions[index])
+            turn
 
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
