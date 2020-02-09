@@ -222,18 +222,37 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
-def animate(grid, locations, player, path, win):
-    prev_pixel_location = locations[grid.positions.index(player.location)]
-    for index, each in enumerate(path[0]):
-        while True:
-            draw_back(grid, win)
-            draw_grid(grid, win)
-            if prev_pixel_location[0] == pixel_location[0]:
-                distance =  
+def animate_player(grid, locations, player, path, win):
+    for index, next_position in enumerate(path[0]):
         pixel_location = locations[grid.positions.index(player.location)]
-        player.draw(pixel_location, win)
-        player.location = each
+        next_pixel_location = locations[grid.positions.index(next_position)]
+        if pixel_location[0] == next_pixel_location[0]:
+            distance = -(pixel_location[1] - next_pixel_location[1])
+            direction = "y"
+        else:
+            distance = -(pixel_location[0] - next_pixel_location[0])
+            direction = "x"
+
+        for x in range(0, 8):
+            if direction == "y" and index != 0:
+                pixel_location = (pixel_location[0], pixel_location[1] + distance/8)
+                draw_back(grid, win)
+                draw_grid(grid, win)
+                player.draw(pixel_location, win)
+                clock.tick(60)
+                pygame.display.update()
+            if direction == "x" and index != 0:
+                pixel_location = (pixel_location[0] + distance/10, pixel_location[1])
+                draw_back(grid, win)
+                draw_grid(grid, win)
+                player.draw(pixel_location, win)
+                clock.tick(60)
+                pygame.display.update()
+        player.location = next_position
+        clock.tick(60)
         pygame.display.update()
+        draw_back(grid, win)
+        draw_grid(grid, win)
 
 
 def game_loop(win, difficulty=1, savefile=""):
@@ -264,9 +283,8 @@ def game_loop(win, difficulty=1, savefile=""):
         if pressed and turn == "player":
             block, index = Coordinates(square_width, locations)
             path = get_path(grid, index, player)
-            animate(grid, locations, player, path, win)
+            animate_player(grid, locations, player, path, win)
             player.location = Reverse(grid.positions[index])
-            turn
 
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
