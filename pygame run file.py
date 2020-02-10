@@ -258,7 +258,7 @@ def animate_player(grid, locations, player, path, win):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(20)
+        grid = Grid.Grid(10 )
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -282,9 +282,13 @@ def game_loop(win, difficulty=1, savefile=""):
 
         if pressed and turn == "player":
             block, index = Coordinates(square_width, locations)
-            path = get_path(grid, index, player)
-            animate_player(grid, locations, player, path, win)
-            player.location = Reverse(grid.positions[index])
+            if index is not None:
+                path = get_path(grid, index, player)
+                animate_player(grid, locations, player, path, win)
+                player.location = Reverse(grid.positions[index])
+        enemies[0][0].find_player(player, walls, locations, grid)
+
+
 
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
