@@ -117,7 +117,7 @@ class Grid:
                     Omit = None
                     # Break walls ,change position ,add last position to stack
                     if Direction == 0:
-                        self.layer[Position[0]][Position[1]][0] = 0
+                        self.layer[Position[0]][Position[1]][0] = 2
                         self.layer[Position[0] - 1][Position[1]][2] = 0
                         history.push(Position)
                         Position = [Position[0] - 1, Position[1]]

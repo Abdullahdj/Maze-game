@@ -258,7 +258,7 @@ def animate_player(grid, locations, player, path, win):
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(10 )
+        grid = Grid.Grid(20)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -287,8 +287,6 @@ def game_loop(win, difficulty=1, savefile=""):
                 animate_player(grid, locations, player, path, win)
                 player.location = Reverse(grid.positions[index])
         enemies[0][0].find_player(player, walls, locations, grid)
-
-
 
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)

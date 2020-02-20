@@ -29,34 +29,41 @@ def Reverse(tuples):
     return new_tup
 
 
-def find_angle_given_coordinates(coordinate1, coordinate2):
-    x_difference = coordinate2[0] - coordinate1[0]
-    y_difference = coordinate2[1] - coordinate1[1]
-    angle = None
-    if x_difference != 0 and y_difference != 0:
-        angle = math.degrees(numpy.arctan(abs(y_difference/x_difference)))
-        if x_difference > 0 and y_difference > 0:
-            angle += 90
-        elif x_difference < 0 and y_difference > 0:
-            angle = 270 - angle
-        elif x_difference < 0 and y_difference < 0:
-            angle += 270
-        elif x_difference > 0 and y_difference < 0:
-            angle = 90 - angle
-    if x_difference == 0 and y_difference == 0:
-        angle = 90
-    elif x_difference == 0:
-        if y_difference > 0:
-            angle = 180
-        else:
-            angle = 0
-    elif y_difference == 0:
-        if x_difference > 0:
-            angle = 90
-        else:
-            angle = 270
-    return angle
+def to_degree(angle):
+    return angle*(180/math.pi)
 
+
+# broken
+def find_angle_given_coordinates(coordinate1, coordinate2):
+    if coordinate1 == coordinate2:
+        return 0
+
+    if coordinate1[0] == coordinate2[0]:
+        if coordinate1[1] < coordinate2[1]:
+            return 0
+        else:
+            return 180
+    elif coordinate1[1] == coordinate2[1]:
+        if coordinate1[0] < coordinate2[0]:
+            return 90
+        else:
+            return 270
+    else:
+        x_difference = coordinate2[0] - coordinate1[0]
+        y_difference = coordinate2[1] - coordinate1[1]
+        angle_x_axis = to_degree(math.atan(abs(y_difference/x_difference)))
+        # print(x_difference, y_difference, angle_x_axis)
+        if y_difference > 0:
+            if x_difference > 0:
+                angle = 90 - angle_x_axis
+            else:
+                angle = 270 + angle_x_axis
+        else:
+            if x_difference > 0:
+                angle = 90 + angle_x_axis
+            else:
+                angle = 270 - angle_x_axis
+        return angle
 
 
 class Enemy:
@@ -71,8 +78,8 @@ class Enemy:
         self.steps = 10
         self.rays = []
         self.size = size
-        self.direction = random.randint(0, 3)  #
-        self.fov = 30
+        self.direction = random.randint(0, 3)
+        self.fov = 60
 
     def create_heap(self, walls):
         wall_q = []
@@ -91,22 +98,53 @@ class Enemy:
         return wall_q
 
     def find_player(self, player, walls, locations, grid):
-        ray = ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.steps + 0.5), 0)
+        if locations[grid.positions.index(Reverse(player.location))] == self.location:
+            self.state = "alert"
+            return
+        ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.steps + 0.5), 0)
         ray.end = (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2)
+
         wall_q = self.create_heap(walls)
         ray.cast(wall_q)
         if ray.end != (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2):
             self.state = "searching"
+            return
         else:
-            angle = find_angle_given_coordinates(ray.start, ray.end)
-            lower = (self.direction * 90 - self.fov/2)     # lower bound
-            if lower < 0:
-                lower = 360 - lower
-            upper = (self.direction * 90 + self.fov/2)
-            if upper > 359:
-                upper = upper - 360
-            if lower <= angle <= upper:
+            angle = find_angle_given_coordinates(ray.start, ray.end)   # fov = 30
+            if self.fov >= 360:
                 self.state = "alert"
+            if self.direction == 0:
+                if angle >= (360 - self.fov/2) or angle <= (self.fov/2):
+                    self.state = "alert"
+                else:
+                    self.state = "searching"
+            elif self.direction == 1:
+                if self.fov/2 >= 90:
+                    if angle >= (360 - ((self.fov / 2) - 90)) or angle <= (90 + self.fov / 2):
+                        self.state = "alert"
+                    else:
+                        self.state = "searching"
+                else:
+                    if 90 - (self.fov / 2) <= angle <= 90 + (self.fov / 2):
+                        self.state = "alert"
+                    else:
+                        self.state = "searching"
+            elif self.direction == 2:
+                if (180 - self.fov / 2) <= angle <= 180 + (self.fov / 2):
+                    self.state = "alert"
+                else:
+                    self.state = "searching"
+            else:
+                if self.fov / 2 >= 90:
+                    if angle >= 270 - self.fov / 2 or angle <= ((self.fov / 2) - 90):
+                        self.state = "alert"
+                    else:
+                        self.state = "searching"
+                else:
+                    if (270 - self.fov / 2) <= angle <= 270 + (self.fov / 2):
+                        self.state = "alert"
+                    else:
+                        self.state = "searching"
 
     def create_rays(self, walls):
         self.rays = []
@@ -125,4 +163,7 @@ class Enemy:
 
     def draw_rays(self, window):
         for ray in self.rays:
-            pygame.draw.aaline(window, blue, ray.start, ray.end)
+            if self.state == "alert":
+                pygame.draw.aaline(window, red, ray.start, ray.end)
+            else:
+                pygame.draw.aaline(window, blue, ray.start, ray.end)
