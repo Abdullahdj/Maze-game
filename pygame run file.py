@@ -140,7 +140,7 @@ def draw_enemies(enemies, window):
         draw_enemy(enemy[0], window)
 
 
-def create_enemy(walls, difficulty, locations, square_width, grid, window):
+def create_enemy(walls, difficulty, locations, square_width, grid):
     enemies = []
     used_spots = [None]
     y = None
@@ -150,7 +150,8 @@ def create_enemy(walls, difficulty, locations, square_width, grid, window):
                 y = random.randint(0, (grid.width ** 2 - 1))
             used_spots.append(y)
             location = locations[y]
-            enemy = Enemy.Enemy(ID, "sprites/blob.png", int(square_width), difficulty, location, "monkey")
+            position = grid.positions[locations.index(location)]
+            enemy = Enemy.Enemy(ID, "sprites/blob.png", int(square_width), difficulty, location, position, "monkey")
             enemy.create_rays(walls)
             enemies.append((enemy, y))
     return enemies
@@ -174,12 +175,10 @@ def Coordinates(square_width, locations):
 
 
 def draw_to_mouse(grid, locations, square_width, win, prev_position, player):
-
     block, index = Coordinates(square_width, locations)
-    path = None
     if block and grid.positions[index] != prev_position:
         path = get_path(grid, index, player)
-        draw_path(grid, path, locations, square_width, player.location, win)
+        draw_path(grid, path, locations, square_width, win)
     if index is not None:
         return grid.positions[index]
     else:
@@ -191,7 +190,7 @@ def get_path(grid, index, player):
         return path
 
 
-def draw_path(grid, path, locations, square_width, player, win):
+def draw_path(grid, path, locations, square_width, win):
     for i, node in enumerate(path[0]):
         location1 = locations[grid.positions.index(node)]
         try:
@@ -255,18 +254,50 @@ def animate_player(grid, locations, player, path, win):
         draw_grid(grid, win)
 
 
+# doesnt work properly
+def move_enemies(grid, locations, enemies, square_width, win, player):
+    for enemy in enemies:
+        steps = enemy[0].steps
+        if enemy[0].state == "searching":
+            while steps != 0:
+                direction = random.randint(0, 3)
+                can_move = True
+                while can_move:
+                    if direction == 0:
+                        new_position = (enemy[0].position[0], enemy[0].position[1] + 1)
+                    elif direction == 1:
+                        new_position = (enemy[0].position[0] + 1, enemy[0].position[1])
+                    elif direction == 2:
+                        new_position = (enemy[0].position[0], enemy[0].position[1] - 1)
+                    elif direction == 3:
+                        new_position = (enemy[0].position[0] - 1, enemy[0].position[1])
+
+                    print(grid.matrix[grid.GetMatrixIndex(new_position)][grid.GetMatrixIndex(enemy[0].position)])   # if "inf" is returned that path is impossible
+                    break
+                break
+
+
 def game_loop(win, difficulty=1, savefile=""):
-    global grid
     if difficulty == 1:
         grid = Grid.Grid(20)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
-    win.fill(purple)
+    win.fill(green)
     locations, walls, square_width = collect_locations(win, grid)
     draw_back(grid, win)
-    enemies = create_enemy(walls, difficulty, locations, square_width, grid, win)
-    player = create_player(grid, enemies, square_width)
+    enemies = create_enemy(walls, difficulty, locations, square_width, grid)
+
+    checker = 1
+    while checker != 0:
+        player = create_player(grid, enemies, square_width)
+        counter = 0
+        for enemy in enemies:
+            enemy[0].find_player(player, walls, locations, grid)
+            if enemy[0].state == "alert":
+                counter += 1
+        checker = counter
+
     draw_grid(grid, win)
     mouse_position = None
     pressed = False
@@ -286,8 +317,16 @@ def game_loop(win, difficulty=1, savefile=""):
                 path = get_path(grid, index, player)
                 animate_player(grid, locations, player, path, win)
                 player.location = Reverse(grid.positions[index])
+            turn = "player"
+
+
+
+        elif turn == "enemy":
+            None
+            # move enemy
         enemies[0][0].find_player(player, walls, locations, grid)
 
+        move_enemies(grid, locations, enemies, square_width, win, player)
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
         pygame.display.update()

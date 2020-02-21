@@ -52,7 +52,6 @@ def find_angle_given_coordinates(coordinate1, coordinate2):
         x_difference = coordinate2[0] - coordinate1[0]
         y_difference = coordinate2[1] - coordinate1[1]
         angle_x_axis = to_degree(math.atan(abs(y_difference/x_difference)))
-        # print(x_difference, y_difference, angle_x_axis)
         if y_difference > 0:
             if x_difference > 0:
                 angle = 90 - angle_x_axis
@@ -67,12 +66,13 @@ def find_angle_given_coordinates(coordinate1, coordinate2):
 
 
 class Enemy:
-    def __init__(self, id, sprite, size, difficulty, location, breed, health=10):
+    def __init__(self, id, sprite, size, difficulty, location, position, breed, health=10):
         self.ID = id
         self.state = "searching"
         self.health = health
         self.breed = breed
         self.location = location
+        self.position = position
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
         self.steps = 10
