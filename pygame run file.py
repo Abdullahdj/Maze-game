@@ -7,6 +7,7 @@ import Player
 import Button
 import Stack
 import Enemy
+import sys
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -48,7 +49,7 @@ def check_events(run):
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            quit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 run = False
@@ -118,7 +119,7 @@ def draw_grid(grid, win):
     if width >= height:
         square_width = (height / grid.width)
         draw_point = (width - (square_width * grid.width))/2
-        line_width = 1
+        line_width = 3
         for x in range(0, grid.width):
             for y in range(0, grid.width):
                 top_right_x = (draw_point + (x * square_width))
@@ -221,7 +222,7 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
-def animate_player(grid, locations, player, path, win):
+def animate_player(grid, locations, player, path, speed, win):
     for index, next_position in enumerate(path[0]):
         pixel_location = locations[grid.positions.index(player.location)]
         next_pixel_location = locations[grid.positions.index(next_position)]
@@ -232,16 +233,16 @@ def animate_player(grid, locations, player, path, win):
             distance = -(pixel_location[0] - next_pixel_location[0])
             direction = "x"
 
-        for x in range(0, 8):
+        for x in range(0, speed):
             if direction == "y" and index != 0:
-                pixel_location = (pixel_location[0], pixel_location[1] + distance/8)
+                pixel_location = (pixel_location[0], pixel_location[1] + distance/speed)
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 player.draw(pixel_location, win)
                 clock.tick(60)
                 pygame.display.update()
             if direction == "x" and index != 0:
-                pixel_location = (pixel_location[0] + distance/10, pixel_location[1])
+                pixel_location = (pixel_location[0] + distance/speed, pixel_location[1])
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 player.draw(pixel_location, win)
@@ -254,11 +255,53 @@ def animate_player(grid, locations, player, path, win):
         draw_grid(grid, win)
 
 
-# doesnt work properly
+# do this differently to player animation
+def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
+    print(path)
+    for enemy, ID in enemies:
+        for index, location in enumerate(path[enemy]):
+            new_pixel_location = locations[grid.positions.index(location)]
+            if enemy.location[0] == new_pixel_location[0]:
+                distance = -(enemy.location[1] - new_pixel_location[1])
+                direction = "y"
+            if enemy.location[1] == new_pixel_location[1]:
+                distance = - (enemy.location[0] - new_pixel_location[0])
+                direction = "x"
+
+            for x in range(0, speed):
+                if direction == "x" and index != 0:
+                    enemy.location = (enemy.location[0] + distance/speed, enemy.location[1])
+                    draw_back(grid, win)
+                    enemy.create_rays(walls)
+                    player.draw(locations[grid.positions.index(Reverse(player.location))], win)
+                    enemy.find_player(player, walls, locations, grid)
+                    enemy.draw_rays(win)
+                    enemy.draw(win)
+                    draw_grid(grid, win)
+                    pygame.display.update()
+                    clock.tick(60)
+                if direction == "y" and index != 0:
+                    enemy.location = (enemy.location[0], enemy.location[1] + distance/speed)
+                    draw_back(grid, win)
+                    enemy.create_rays(walls)
+                    player.draw(locations[grid.positions.index(Reverse(player.location))], win)
+                    enemy.find_player(player, walls, locations, grid)
+                    enemy.draw_rays(win)
+                    enemy.draw(win)
+                    draw_grid(grid, win)
+                    pygame.display.update()
+                    clock.tick(60)
+
+
+
+
+
+
+# works but now you need to animate and then you need to remember last location that the player was spotted in
 def move_enemies(grid, locations, enemies, walls, player):
     paths = {}               # dictionary storing the enemy along with the path it takes in order to animate
     for enemy in enemies:
-        path = []
+        path = [enemy[0].position]
         steps = enemy[0].steps
         while steps > 0:
             new_position = None
@@ -284,27 +327,44 @@ def move_enemies(grid, locations, enemies, walls, player):
                         steps -= weight
                         enemy[0].find_player(player, walls, locations, grid)
                     else:
-                        print("unvisitable")
+                        "unvisitable"
                 else:
-                    print("out of map")
+                    "out of map"
 
+            # broken completely
 
-            while enemy[0].state == "alert" and steps > 0:
-                path_to_player = grid.PathFinding(enemy[0].position, player.location)
+            if enemy[0].state == "alert" and steps > 0:
+                if enemy[0].location == locations[grid.positions.index(Reverse(player.location))]:
+                    break
+                path_to_player, weight = grid.PathFinding(Reverse(enemy[0].position), Reverse(player.location))
+                if weight <= steps:
+                    for index, location in enumerate(path_to_player):
+                        if index != 0:
+                            path.append(location)
+                            enemy[0].position = location
+                            enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                            steps -= 1
+                else:
+                    for location in path_to_player:
+                        if steps + 1 > 0:
+                            steps -= 1   # y infinite?!?!!!?!?!??
+                            path.append(location)
+                            enemy[0].position = location
+                            enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+        paths[enemy[0]] = path
+        enemy[0].position = path[0]
+        enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+    return paths
 
-                # make it so that the enemy must touch the player
-                if path_to_player[1] <= steps:
-                    for location in path_to_player[0]:
-                        path.append(location)
-                        enemy[0].position = Reverse(location)
-                        enemy[0].location = locations[grid.positions.index(enemy[0].position)]
-                steps = 0
+#  wherever there is steps -= 1 change to matrix weightings
+
 
 
 
 def game_loop(win, difficulty=1, savefile=""):
+    global grid
     if difficulty == 1:
-        grid = Grid.Grid(10)
+        grid = Grid.Grid(15)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -331,7 +391,7 @@ def game_loop(win, difficulty=1, savefile=""):
     while run:
         if pygame.mouse.get_rel() != (0, 0):
             block, index = Coordinates(square_width, locations)
-            if block and grid.positions[index] != mouse_position:    # if statements are here so that the dijkstra is only run when the cursor changes block
+            if block and grid.positions[index] != mouse_position:    # if statements are here so that the dijkstra is only run when the cursor changes block for efficiency
                 draw_back(grid, win)
                 draw_grid(grid, win)
             mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, player)
@@ -340,22 +400,28 @@ def game_loop(win, difficulty=1, savefile=""):
             block, index = Coordinates(square_width, locations)
             if index is not None:
                 path = get_path(grid, index, player)
-                animate_player(grid, locations, player, path, win)
+                animate_player(grid, locations, player, path, 5, win)
                 player.location = Reverse(grid.positions[index])
             turn = "enemy"
 
-
-
         elif turn == "enemy":
-            move_enemies(grid, locations, enemies, walls, player)
+            enemy_paths = move_enemies(grid, locations, enemies, walls, player)
+            pygame.time.wait(150)
+            animate_enemies(grid, walls, locations, enemies, enemy_paths, 10, player, win)
             draw_back(grid, win)
             for enemy in enemies:
                 enemy[0].create_rays(walls)
+                enemy[0].position = enemy_paths[enemy[0]][-1]
+                enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+            enemy_paths = None
             draw_enemies(enemies, win)
             draw_grid(grid, win)
+
             turn = "player"
             # move enemy
-        enemies[0][0].find_player(player, walls, locations, grid)
+
+        for enemy in enemies:
+            enemy[0].find_player(player, walls, locations, grid)
 
 
         draw_player(grid, locations, player, win)
