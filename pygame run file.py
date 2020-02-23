@@ -222,7 +222,7 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
-def animate_player(grid, locations, player, path, speed, win):
+def animate_player(grid, locations, player, path, speed, enemies, win):
     for index, next_position in enumerate(path[0]):
         pixel_location = locations[grid.positions.index(player.location)]
         next_pixel_location = locations[grid.positions.index(next_position)]
@@ -239,6 +239,7 @@ def animate_player(grid, locations, player, path, speed, win):
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 player.draw(pixel_location, win)
+                draw_enemies(enemies, win)
                 clock.tick(60)
                 pygame.display.update()
             if direction == "x" and index != 0:
@@ -246,6 +247,7 @@ def animate_player(grid, locations, player, path, speed, win):
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 player.draw(pixel_location, win)
+                draw_enemies(enemies, win)
                 clock.tick(60)
                 pygame.display.update()
         player.location = next_position
@@ -400,7 +402,7 @@ def game_loop(win, difficulty=1, savefile=""):
             block, index = Coordinates(square_width, locations)
             if index is not None:
                 path = get_path(grid, index, player)
-                animate_player(grid, locations, player, path, 5, win)
+                animate_player(grid, locations, player, path, 5, enemies, win)
                 player.location = Reverse(grid.positions[index])
             turn = "enemy"
 
