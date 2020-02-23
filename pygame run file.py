@@ -255,31 +255,56 @@ def animate_player(grid, locations, player, path, win):
 
 
 # doesnt work properly
-def move_enemies(grid, locations, enemies, square_width, win, player):
+def move_enemies(grid, locations, enemies, walls, player):
+    paths = {}               # dictionary storing the enemy along with the path it takes in order to animate
     for enemy in enemies:
+        path = []
         steps = enemy[0].steps
-        if enemy[0].state == "searching":
-            while steps != 0:
+        while steps > 0:
+            new_position = None
+            direction = None
+            while enemy[0].state == "searching" and steps > 0:
                 direction = random.randint(0, 3)
-                can_move = True
-                while can_move:
-                    if direction == 0:
-                        new_position = (enemy[0].position[0], enemy[0].position[1] + 1)
-                    elif direction == 1:
-                        new_position = (enemy[0].position[0] + 1, enemy[0].position[1])
-                    elif direction == 2:
-                        new_position = (enemy[0].position[0], enemy[0].position[1] - 1)
-                    elif direction == 3:
-                        new_position = (enemy[0].position[0] - 1, enemy[0].position[1])
+                if direction == 0:
+                    new_position = (enemy[0].position[0], enemy[0].position[1] + 1)
+                elif direction == 1:
+                    new_position = (enemy[0].position[0] + 1, enemy[0].position[1])
+                elif direction == 2:
+                    new_position = (enemy[0].position[0], enemy[0].position[1] - 1)
+                else:   # direction == 3
+                    new_position = (enemy[0].position[0] - 1, enemy[0].position[1])
 
-                    print(grid.matrix[grid.GetMatrixIndex(new_position)][grid.GetMatrixIndex(enemy[0].position)])   # if "inf" is returned that path is impossible
-                    break
-                break
+                if type(grid.GetMatrixIndex(Reverse(new_position))) == int:
+                    weight = grid.matrix[grid.GetMatrixIndex(Reverse(new_position))][grid.GetMatrixIndex(Reverse(enemy[0].position))]
+                    if weight != float("inf") and steps >= weight:
+                        enemy[0].position = new_position
+                        enemy[0].direction = direction
+                        enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                        path.append(new_position)
+                        steps -= weight
+                        enemy[0].find_player(player, walls, locations, grid)
+                    else:
+                        print("unvisitable")
+                else:
+                    print("out of map")
+
+
+            while enemy[0].state == "alert" and steps > 0:
+                path_to_player = grid.PathFinding(enemy[0].position, player.location)
+
+                # make it so that the enemy must touch the player
+                if path_to_player[1] <= steps:
+                    for location in path_to_player[0]:
+                        path.append(location)
+                        enemy[0].position = Reverse(location)
+                        enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                steps = 0
+
 
 
 def game_loop(win, difficulty=1, savefile=""):
     if difficulty == 1:
-        grid = Grid.Grid(20)
+        grid = Grid.Grid(10)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -317,16 +342,22 @@ def game_loop(win, difficulty=1, savefile=""):
                 path = get_path(grid, index, player)
                 animate_player(grid, locations, player, path, win)
                 player.location = Reverse(grid.positions[index])
-            turn = "player"
+            turn = "enemy"
 
 
 
         elif turn == "enemy":
-            None
+            move_enemies(grid, locations, enemies, walls, player)
+            draw_back(grid, win)
+            for enemy in enemies:
+                enemy[0].create_rays(walls)
+            draw_enemies(enemies, win)
+            draw_grid(grid, win)
+            turn = "player"
             # move enemy
         enemies[0][0].find_player(player, walls, locations, grid)
 
-        move_enemies(grid, locations, enemies, square_width, win, player)
+
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
         pygame.display.update()

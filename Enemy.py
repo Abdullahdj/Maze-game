@@ -33,6 +33,11 @@ def to_degree(angle):
     return angle*(180/math.pi)
 
 
+def calculateDistance(coordinate1, coordinate2):
+    dist = math.sqrt((coordinate2[0] - coordinate1[0])**2 + (coordinate2[1] - coordinate1[1])**2)
+    return dist
+
+
 # broken
 def find_angle_given_coordinates(coordinate1, coordinate2):
     if coordinate1 == coordinate2:
@@ -75,7 +80,8 @@ class Enemy:
         self.position = position
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
-        self.steps = 10
+        self.steps = 4
+        self.ray_size = 1
         self.rays = []
         self.size = size
         self.direction = random.randint(0, 3)
@@ -93,7 +99,7 @@ class Enemy:
             y3 = self.location[1] + self.size / 2
             # check if wall is even worth calculating (this is an efficiency improvement)
             shortest_distance = abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1) / (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** (1 / 2.0)
-            if shortest_distance <= self.size * (self.steps + 1.5):
+            if shortest_distance <= self.size * (self.ray_size + 1.5):
                 heapq.heappush(wall_q, (shortest_distance, wall))
         return wall_q
 
@@ -101,9 +107,12 @@ class Enemy:
         if locations[grid.positions.index(Reverse(player.location))] == self.location:
             self.state = "alert"
             return
-        ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.steps + 0.5), 0)
+        ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.ray_size + 0.5), 0)
         ray.end = (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2)
-
+        distance = calculateDistance(ray.start, ray.end)
+        if distance > self.size * (self.ray_size + 0.5):
+            self.state = "searching"
+            return
         wall_q = self.create_heap(walls)
         ray.cast(wall_q)
         if ray.end != (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2):
@@ -153,7 +162,7 @@ class Enemy:
         if self.difficulty == 1:
             start_angle = (self.direction * 90) - (self.fov/2)
             for angle in range(0, int(self.fov)*qty):
-                ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.steps + 0.5), angle/qty + start_angle)
+                ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.ray_size + 0.5), angle/qty + start_angle)
                 ray.cast(wall_q)
                 self.rays.append(ray)
 
