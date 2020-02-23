@@ -257,7 +257,7 @@ def animate_player(grid, locations, player, path, speed, enemies, win):
         draw_grid(grid, win)
 
 
-# do this differently to player animation
+# do this differently to player animation  ITS STILL FUCKING BROKEN (fix when you move more than one step)
 def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
     print(path)
     for enemy, ID in enemies:
@@ -293,6 +293,7 @@ def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
                     draw_grid(grid, win)
                     pygame.display.update()
                     clock.tick(60)
+            enemy.location = new_pixel_location[:]
 
 
 

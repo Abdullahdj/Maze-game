@@ -80,7 +80,7 @@ class Enemy:
         self.position = position
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
-        self.steps = 1
+        self.steps = 30
         self.ray_size = 5
         self.rays = []
         self.size = size
