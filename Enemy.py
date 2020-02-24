@@ -76,12 +76,13 @@ class Enemy:
         self.state = "searching"
         self.health = health
         self.breed = breed
-        self.location = location
+        self.location = location            # location in pixels
         self.position = position
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
-        self.steps = 30
-        self.ray_size = 5
+        self.last_known_location = None             # last known player location in pixels
+        self.steps = 2
+        self.ray_size = 10
         self.rays = []
         self.size = size
         self.direction = random.randint(0, 3)
@@ -106,6 +107,7 @@ class Enemy:
     def find_player(self, player, walls, locations, grid):
         if locations[grid.positions.index(Reverse(player.location))] == self.location:
             self.state = "alert"
+            self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
             return
         ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.ray_size + 0.5), 0)
         ray.end = (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2)
@@ -122,36 +124,43 @@ class Enemy:
             angle = find_angle_given_coordinates(ray.start, ray.end)   # fov = 30
             if self.fov >= 360:
                 self.state = "alert"
+                self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
             if self.direction == 0:
                 if angle >= (360 - self.fov/2) or angle <= (self.fov/2):
                     self.state = "alert"
+                    self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                 else:
                     self.state = "searching"
             elif self.direction == 1:
                 if self.fov/2 >= 90:
                     if angle >= (360 - ((self.fov / 2) - 90)) or angle <= (90 + self.fov / 2):
                         self.state = "alert"
+                        self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                     else:
                         self.state = "searching"
                 else:
                     if 90 - (self.fov / 2) <= angle <= 90 + (self.fov / 2):
                         self.state = "alert"
+                        self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                     else:
                         self.state = "searching"
             elif self.direction == 2:
                 if (180 - self.fov / 2) <= angle <= 180 + (self.fov / 2):
                     self.state = "alert"
+                    self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                 else:
                     self.state = "searching"
             else:
                 if self.fov / 2 >= 90:
                     if angle >= 270 - self.fov / 2 or angle <= ((self.fov / 2) - 90):
                         self.state = "alert"
+                        self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                     else:
                         self.state = "searching"
                 else:
                     if (270 - self.fov / 2) <= angle <= 270 + (self.fov / 2):
                         self.state = "alert"
+                        self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
                     else:
                         self.state = "searching"
 
@@ -166,6 +175,10 @@ class Enemy:
                 ray.cast(wall_q)
                 self.rays.append(ray)
 
+    def player_remembered(self):
+        if self.location == self.last_known_location:
+            self.last_known_location = None
+
     def draw(self, window):
         self.sprite = pygame.transform.scale(self.sprite, (self.size, self.size))
         window.blit(self.sprite, self.location)
@@ -174,5 +187,7 @@ class Enemy:
         for ray in self.rays:
             if self.state == "alert":
                 pygame.draw.aaline(window, red, ray.start, ray.end)
+            elif self.last_known_location != None:      # colour of rays is made orange if the enemy spotted you but can't see you
+                pygame.draw.aaline(window, darkorange, ray.start, ray.end)
             else:
                 pygame.draw.aaline(window, blue, ray.start, ray.end)
