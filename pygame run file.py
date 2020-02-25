@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+import threading
 import time
 import random
 import Grid
@@ -7,12 +8,14 @@ import Player
 import Button
 import Stack
 import Enemy
+import Item
+import math
 import sys
 pygame.init()
 
 clock = pygame.time.Clock()
 
-
+darkred = (139, 0, 0)
 darkorange = (255, 140, 0)
 lightgreen = (0, 255, 127)
 whitegreen = (0, 255, 200)
@@ -177,13 +180,14 @@ def Coordinates(square_width, locations):
 
 def draw_to_mouse(grid, locations, square_width, win, prev_position, player):
     block, index = Coordinates(square_width, locations)
+    path = None
     if block and grid.positions[index] != prev_position:
         path = get_path(grid, index, player)
         draw_path(grid, path, locations, square_width, win)
     if index is not None:
-        return grid.positions[index]
+        return grid.positions[index], path
     else:
-        return None
+        return None, path
 
 
 def get_path(grid, index, player):
@@ -209,7 +213,7 @@ def draw_path(grid, path, locations, square_width, win):
             break
 
 
-def create_player(grid, enemies, square_width):
+def create_player(grid, locations, enemies, square_width):
     unvisitable = []
     for enemy in enemies:
         unvisitable.append(enemy[0].location)
@@ -230,7 +234,7 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
-def animate_player(grid, locations, player, path, speed, enemies, win):
+def animate_player(items, grid, locations, player, path, speed, enemies, win):
     for index, next_position in enumerate(path[0]):
         pixel_location = locations[grid.positions.index(player.location)]
         next_pixel_location = locations[grid.positions.index(next_position)]
@@ -246,6 +250,7 @@ def animate_player(grid, locations, player, path, speed, enemies, win):
                 pixel_location = (pixel_location[0], pixel_location[1] + distance/speed)
                 draw_back(grid, win)
                 draw_grid(grid, win)
+                draw_items(items, win)
                 player.draw(pixel_location, win)
                 draw_enemies(enemies, win)
                 clock.tick(60)
@@ -254,20 +259,24 @@ def animate_player(grid, locations, player, path, speed, enemies, win):
                 pixel_location = (pixel_location[0] + distance/speed, pixel_location[1])
                 draw_back(grid, win)
                 draw_grid(grid, win)
+                draw_items(items, win)
                 player.draw(pixel_location, win)
                 draw_enemies(enemies, win)
                 clock.tick(60)
                 pygame.display.update()
             pygame.mouse.get_pressed()
+        print(next_position)
         player.location = next_position
+        player.check_for_items(items)
         clock.tick(60)
         pygame.display.update()
         draw_back(grid, win)
         draw_grid(grid, win)
+        draw_items(items, win)
 
 
 # ok it works
-def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
+def animate_enemies(items, grid, walls, locations, enemies, path, speed, player, win):
     for enemy, ID in enemies:
         for index, location in enumerate(path[enemy]):
             new_pixel_location = locations[grid.positions.index(location)]
@@ -294,6 +303,7 @@ def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
                     enemy.draw(win)
                     draw_enemies(enemies, win)
                     draw_grid(grid, win)
+                    draw_items(items, win)
                     pygame.display.update()
                     clock.tick(60)
                 if direction == "y" and index != 0:
@@ -311,6 +321,7 @@ def animate_enemies(grid, walls, locations, enemies, path, speed, player, win):
                     draw_enemies(enemies, win)
                     enemy.draw(win)
                     draw_grid(grid, win)
+                    draw_items(items, win)
                     pygame.display.update()
                     clock.tick(60)
                 pygame.mouse.get_pressed()
@@ -368,7 +379,7 @@ def move_enemies(grid, locations, enemies, walls, player):
                 else:
                     for location in path_to_player:
                         if steps + 1 > 0:
-                            steps -= 1   # y infinite?!?!!!?!?!??
+                            steps -= 1
                             path.append(location)
                             enemy[0].position = location
                             enemy[0].location = locations[grid.positions.index(enemy[0].position)]
@@ -376,18 +387,45 @@ def move_enemies(grid, locations, enemies, walls, player):
         paths[enemy[0]] = path
         enemy[0].position = path[0]
         enemy[0].location = locations[grid.positions.index(enemy[0].position)]
-        enemy[0].player_remembered()
-    return paths
 
+    return paths
 #  wherever there is steps -= 1 change to matrix weightings
 
+def display_player_health(player, win):
+    message_display(("Health: " + str(player.health)), (150, 50), win)
 
+
+def gridMake(amount,gridList):
+    grid = Grid.Grid(amount)
+    gridList[0] = grid
+
+
+def create_items(number_of_items, square_width, grid, locations):
+    # also create a key separately
+    items = []
+    for x in range(0, number_of_items):
+        sprite = random.choice(["sprites/pile_o_coins.png", "sprites/chest_o_coins.png", "sprites/ruby.png"])
+        index = random.randint(0, (grid.width**2)-1)
+        position = grid.positions[index]
+        location = locations[grid.positions.index(Reverse(position))]
+        item = Item.Item(sprite, square_width, position, location)
+        items.append(item)
+    return items
+
+
+def draw_items(items, win):
+    for item in items:
+        item.draw(win)
 
 
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
-        grid = Grid.Grid(10)
+        gridList = [0]
+        mainThread =threading.Thread(target=gridMake,
+                                     args=(5, gridList))
+        mainThread.start()
+        grid = gridList[0]
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True
@@ -398,49 +436,63 @@ def game_loop(win, difficulty=1, savefile=""):
 
     checker = 1
     while checker != 0:
-        player = create_player(grid, enemies, square_width)
+        player = create_player(grid, locations, enemies, square_width)
         counter = 0
         for enemy in enemies:                     # This block of code prevents player from being in the same position as enemy by checking if enemy sees them and reinitialising if they can
             enemy[0].find_player(player, walls, locations, grid)
+            enemy[0].last_known_location = None
             if enemy[0].state == "alert":
                 counter += 1
         checker = counter
 
+    items = create_items(10, square_width, grid, locations)
+
     draw_grid(grid, win)
+    draw_items(items, win)
     mouse_position = None
     pressed = False
     turn = "player"
+    path = [[player.location], 0]
 
     while run:
+        display_player_health(player, win)
         if pygame.mouse.get_rel() != (0, 0):
             block, index = Coordinates(square_width, locations)
             if block and grid.positions[index] != mouse_position:    # if statements are here so that the dijkstra is only run when the cursor changes block for efficiency
                 draw_back(grid, win)
                 draw_grid(grid, win)
-            mouse_position = draw_to_mouse(grid, locations, square_width, win, mouse_position, player)
+                draw_items(items, win)
+            mouse_position, temp = draw_to_mouse(grid, locations, square_width, win, mouse_position, player)
+            if temp != None:
+                path = temp
 
         if pressed and turn == "player":
             block, index = Coordinates(square_width, locations)
             if index is not None:
                 path = get_path(grid, index, player)
-                animate_player(grid, locations, player, path, 8, enemies, win)
+                animate_player(items, grid, locations, player, path, 8, enemies, win)
                 player.location = Reverse(path[0][-1])
+                player.check_for_items(items)
                 if len(path[0]) == 1:
                     player.location = path[0][-1]
+                    player.check_for_items(items)
                 turn = "enemy"
 
         elif turn == "enemy":
+            path = get_path(grid, index, player)
             enemy_paths = move_enemies(grid, locations, enemies, walls, player)
             pygame.time.wait(150)
-            animate_enemies(grid, walls, locations, enemies, enemy_paths, 8, player, win)
+            animate_enemies(items, grid, walls, locations, enemies, enemy_paths, 4, player, win)
             draw_back(grid, win)
             for enemy in enemies:
                 enemy[0].create_rays(walls)
                 enemy[0].position = enemy_paths[enemy[0]][-1]
                 enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                enemy[0].check_if_player_hit(player, locations, grid)              # checks if by the end of the movement the enemy has hit the player if this is true then the player will lose health
             enemy_paths = None
             draw_enemies(enemies, win)
             draw_grid(grid, win)
+            draw_items(items, win)
 
             turn = "player"
             # move enemy
@@ -448,12 +500,31 @@ def game_loop(win, difficulty=1, savefile=""):
         for enemy in enemies:
             enemy[0].find_player(player, walls, locations, grid)
 
-
         draw_player(grid, locations, player, win)
         draw_enemies(enemies, win)
         pygame.display.update()
+        if player.health <= 0:
+            game_over_screen(50, win)
+            run = False
         clock.tick(144)
+        win.fill(green)
+        draw_back(grid, win)
+        draw_grid(grid, win)
+        draw_items(items, win)
+        draw_path(grid, path, locations, square_width, win)
         run, pressed = check_events(run)
+
+
+def game_over_screen(score, win):
+    width, height = pygame.display.get_surface().get_size()
+    time = pygame.time.get_ticks()
+    red_val = 0
+    while pygame.time.get_ticks() - time < 9000:
+        win.fill((int(red_val), 0, 0))
+        message_display("YOU LOSE", (int(width/2) - int(width/50), int(height/2) - int(height/50)), win)
+        red_val = (red_val + 0.2) % 255
+        pygame.display.update()
+
 
 
 def menu(run):
@@ -462,10 +533,18 @@ def menu(run):
     quit = Button.Button(int(width/20), height*(12/15), int(width/3), int(height/10), white, black, "Quit")
     play = Button.Button(int(width/20), int(height*(8/15)), int(width/3), int(height/10), white, black, "Play")
     options = Button.Button(int(width/20), int(height*(10/15)), int(width/3), int(height/10), white, black, "Options")
+    time = pygame.time.get_ticks()
+    win.fill(whiteblue)
+    background(lightblue, 10, win)
+
     while run:
         pygame.display.update()
-        win.fill(whiteblue)
-        background(lightblue, 10, win)
+        if (pygame.time.get_ticks() - time) % 2000 < 1000:
+            win.fill(whiteblue)
+            background(lightblue, 10, win)
+        else:
+            win.fill(lightblue)
+            background(whiteblue, 10, win)
         clock.tick(144)
         run = check_events(run)[0]
 # buttons
@@ -496,6 +575,7 @@ def menu(run):
     return run
 
 
+loading = True
 running = True
 running = menu(running)
 pygame.quit()

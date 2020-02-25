@@ -21,18 +21,34 @@ white = (255, 255, 255)
 pink = (255, 105, 180)
 
 
+def Reverse(tuples):
+    new_tup = tuples[::-1]
+    return new_tup
+
+
 class Player:
-    def __init__(self, sprite, size, location, steps=3, health=10):
+    def __init__(self, sprite, size, location, steps=4, health=10):
         self.health = health
         self.collected_items = []
-        self.location = location
+        self.location = location                        # in y,x format when represented graphically
         self.sprite = pygame.image.load(sprite)
         self.size = size
         self.steps = steps
 
-    # def check_for_items(self):
+    def check_for_items(self, items):
+        remove = []
+        for item in items:
+            if self.location == Reverse(item.position):      # there is a special case in python that means that removing an item from a list whilst iterating through causes the next item to be skipped
+                remove.append(item)
+        for item in remove:
+            items.remove(item)
+            self.collected_items.append(item)
+            print(item.position)
+
+    def lose_health(self, damage):
+        self.health -= damage
 
     def draw(self, pixel_location, window):
         self.sprite = pygame.transform.scale(self.sprite, (int(self.size), int(self.size)))
         window.blit(self.sprite, pixel_location)
-        pygame.draw.circle(window, green, (int(pixel_location[0] + 1/2*self.size), int(pixel_location[1] + 1/2*self.size)), 3, 3)   # this indicates where the enemy can see you
+        pygame.draw.circle(window, green, (int(pixel_location[0] + 1/2*self.size), int(pixel_location[1] + 1/2*self.size)), 3, 3)   # This is the part of you the enemy can see (green circle look closely)

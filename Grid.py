@@ -16,11 +16,12 @@ class Grid:
             self.width = 1
         else:
             self.width = int(width)
+        self.items = []
         self.positions = []  # positions are like indices on the grid 2d array and these match 1 to 1 with locations ("ordinally") with locations from pygame run file
         self.walls = None
         self.maze = []
         self.layer = []
-        self.template = []      # used for efficiency better to copy a template of an all blocked off grid then to recreate it.
+        self.template = []      # used for efficiency better to copy a template of an all blocked off grid then to recreate it every time you run the code you feel?
         self.matrix = None
         self.exit = None
         self.matrix_map = None
