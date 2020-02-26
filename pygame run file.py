@@ -252,7 +252,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 display_player_health(player, win)
-                display_score(player, win)
+                display_score_ingame(player, win)
                 draw_items(items, win)
                 player.draw(pixel_location, win)
                 draw_enemies(enemies, win)
@@ -264,7 +264,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
                 draw_back(grid, win)
                 draw_grid(grid, win)
                 display_player_health(player, win)
-                display_score(player, win)
+                display_score_ingame(player, win)
                 draw_items(items, win)
                 player.draw(pixel_location, win)
                 draw_enemies(enemies, win)
@@ -279,7 +279,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
         draw_back(grid, win)
         draw_grid(grid, win)
         display_player_health(player, win)
-        display_score(player, win)
+        display_score_ingame(player, win)
         draw_items(items, win)
     player.location = Reverse(player.location)
 
@@ -536,7 +536,7 @@ def game_loop(win, difficulty=1, savefile=""):
         draw_enemies(enemies, win)
         pygame.display.update()
         if player.health <= 0:
-            game_over_screen(50, win)
+            game_over_screen(player, win)
             run = False
         clock.tick(144)
         win.fill(green)
@@ -545,10 +545,10 @@ def game_loop(win, difficulty=1, savefile=""):
         draw_items(items, win)
         draw_path(grid, path, locations, square_width, win)
         run, pressed = check_events(run)
-        display_score(player, win)
+        display_score_ingame(player, win)
 
 
-def display_score(player, win):
+def display_score_ingame(player, win):
     width, height = pygame.display.get_surface().get_size()
     score = player.calculate_score()
     message_display(("Score:" + str(score)), (width*15/192, height*20/108), win)
@@ -561,6 +561,7 @@ def game_over_screen(player, win):
     while pygame.time.get_ticks() - time < 9000:
         win.fill((int(red_val), 0, 0))
         message_display("YOU LOSE", (int(width/2) - int(width/50), int(height/2) - int(height/50)), win)
+        message_display(("SCORE:" + str(player.calculate_score())), (int(width/2) - int(width/50), int(height/2) + int(height/10)), win)
         red_val = (red_val + 0.2) % 255
         pygame.display.update()
 

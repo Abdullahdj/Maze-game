@@ -45,9 +45,8 @@ class Player:
             self.collected_items.append(item)
             items.remove(item)
 
-
     def calculate_score(self):
-        score = int(self.health/self.max_health * 10)
+        score = int(self.health/self.max_health * 500)
         for item in self.collected_items:
             score += item.value
         return score

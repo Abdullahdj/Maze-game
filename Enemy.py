@@ -109,6 +109,7 @@ class Enemy:
         if locations[grid.positions.index(Reverse(player.location))] == self.location:
             self.state = "alert"
             self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+            self.player_remembered()
             return
         ray = Ray.Ray((self.location[0] + self.size/2, self.location[1] + self.size/2), self.size * (self.ray_size + 0.5), 0)
         ray.end = (locations[grid.positions.index(Reverse(player.location))][0] + self.size/2, locations[grid.positions.index(Reverse(player.location))][1] + self.size/2)
@@ -126,10 +127,12 @@ class Enemy:
             if self.fov >= 360:
                 self.state = "alert"
                 self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                self.player_remembered()
             if self.direction == 0:
                 if angle >= (360 - self.fov/2) or angle <= (self.fov/2):
                     self.state = "alert"
                     self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                    self.player_remembered()
                 else:
                     self.state = "searching"
             elif self.direction == 1:
@@ -137,18 +140,21 @@ class Enemy:
                     if angle >= (360 - ((self.fov / 2) - 90)) or angle <= (90 + self.fov / 2):
                         self.state = "alert"
                         self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                        self.player_remembered()
                     else:
                         self.state = "searching"
                 else:
                     if 90 - (self.fov / 2) <= angle <= 90 + (self.fov / 2):
                         self.state = "alert"
                         self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                        self.player_remembered()
                     else:
                         self.state = "searching"
             elif self.direction == 2:
                 if (180 - self.fov / 2) <= angle <= 180 + (self.fov / 2):
                     self.state = "alert"
                     self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                    self.player_remembered()
                 else:
                     self.state = "searching"
             else:
@@ -156,12 +162,14 @@ class Enemy:
                     if angle >= 270 - self.fov / 2 or angle <= ((self.fov / 2) - 90):
                         self.state = "alert"
                         self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                        self.player_remembered()
                     else:
                         self.state = "searching"
                 else:
                     if (270 - self.fov / 2) <= angle <= 270 + (self.fov / 2):
                         self.state = "alert"
                         self.last_known_location = locations[grid.positions.index(Reverse(player.location))]
+                        self.player_remembered()
                     else:
                         self.state = "searching"
 
