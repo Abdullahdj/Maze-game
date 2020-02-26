@@ -177,8 +177,9 @@ class Enemy:
                 self.rays.append(ray)
 
     def player_remembered(self):
-        if self.location == self.last_known_location:
-            self.last_known_location = None
+        if self.last_known_location is not None:
+            if self.location == self.last_known_location:
+                self.last_known_location = None
 
     def check_if_player_hit(self, player, locations, grid):
         if self.location == locations[grid.positions.index(Reverse(player.location))]:

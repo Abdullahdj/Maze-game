@@ -149,7 +149,7 @@ def create_enemy(walls, difficulty, locations, square_width, grid):
     used_spots = [None]
     y = None
     if difficulty == 1:
-        for ID in range(0, 1):
+        for ID in range(0, 10):
             while y in used_spots:
                 y = random.randint(0, (grid.width ** 2 - 1))
             used_spots.append(y)
@@ -366,7 +366,6 @@ def move_enemies(grid, locations, enemies, walls, player):
                         enemy[0].position = new_position
                         enemy[0].direction = direction
                         enemy[0].location = locations[grid.positions.index(enemy[0].position)]
-                        enemy[0].player_remembered()
                         path.append(new_position)
                         steps -= weight
                         enemy[0].find_player(player, walls, locations, grid)
@@ -375,7 +374,7 @@ def move_enemies(grid, locations, enemies, walls, player):
                 else:
                     "out of map"
 
-            if (enemy[0].state == "alert" and steps > 0) or enemy[0].last_known_location != None:
+            if enemy[0].state == "alert" and steps > 0:
                 if enemy[0].location == locations[grid.positions.index(Reverse(player.location))]:
                     break
                 path_to_player, weight = grid.PathFinding(Reverse(enemy[0].position), Reverse(player.location))
@@ -395,9 +394,34 @@ def move_enemies(grid, locations, enemies, walls, player):
                             enemy[0].position = location
                             enemy[0].location = locations[grid.positions.index(enemy[0].position)]
                             enemy[0].player_remembered()
+
+            if enemy[0].last_known_location is not None:
+                print(enemy[0].last_known_location, enemy[0].location)
+                if enemy[0].location == locations[grid.positions.index(Reverse(player.location))]:
+                    break
+                path_to_player, weight = grid.PathFinding(Reverse(enemy[0].position), grid.positions[locations.index(enemy[0].last_known_location)])
+                if weight <= steps:
+                    for index, location in enumerate(path_to_player):
+                        if index != 0:
+                            path.append(location)
+                            enemy[0].position = location
+                            enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                            enemy[0].player_remembered()
+                            steps -= 1
+                else:
+                    for location in path_to_player:
+                        if steps + 1 > 0:
+                            steps -= 1
+                            path.append(location)
+                            enemy[0].position = location
+                            enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+                            enemy[0].player_remembered()
         paths[enemy[0]] = path
         enemy[0].position = path[0]
         enemy[0].location = locations[grid.positions.index(enemy[0].position)]
+        enemy[0].player_remembered()
+
+
 
     return paths
 #  wherever there is steps -= 1 change to matrix weightings
@@ -457,7 +481,7 @@ def game_loop(win, difficulty=1, savefile=""):
                 counter += 1
         checker = counter
 
-    items = create_items(grid.width, square_width, grid, locations)
+    items = create_items(int(grid.width*1.5), square_width, grid, locations)
 
     draw_grid(grid, win)
     draw_items(items, win)
