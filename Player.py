@@ -27,7 +27,8 @@ def Reverse(tuples):
 
 
 class Player:
-    def __init__(self, sprite, size, location, steps=4, health=10):
+    def __init__(self, sprite, size, location, steps=10, health=10):
+        self.max_health = 10
         self.health = health
         self.collected_items = []
         self.location = location                        # in y,x format when represented graphically
@@ -38,12 +39,18 @@ class Player:
     def check_for_items(self, items):
         remove = []
         for item in items:
-            if self.location == Reverse(item.position):      # there is a special case in python that means that removing an item from a list whilst iterating through causes the next item to be skipped
+            if self.location == Reverse(item.position):            # there is a special case in python that means that removing an item from a list whilst iterating through causes the next item to be skipped
                 remove.append(item)
         for item in remove:
-            items.remove(item)
             self.collected_items.append(item)
-            print(item.position)
+            items.remove(item)
+
+
+    def calculate_score(self):
+        score = int(self.health/self.max_health * 10)
+        for item in self.collected_items:
+            score += item.value
+        return score
 
     def lose_health(self, damage):
         self.health -= damage

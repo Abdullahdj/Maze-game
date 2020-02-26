@@ -257,7 +257,7 @@ class Grid:
     def PathFinding(self, source, exit):
         exit = Reverse(exit)
         if source == exit:
-            return [[source], 0]
+            return [[Reverse(source)], 0]
         unvisited = PQ.Heap()
         visited = PQ.Heap()
         # create queue filled with unvisited nodes
