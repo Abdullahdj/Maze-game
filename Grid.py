@@ -17,7 +17,7 @@ class Grid:
         else:
             self.width = int(width)
         self.items = []
-        self.positions = []  # positions are like indices on the grid 2d array and these match 1 to 1 with locations ("ordinally") with locations from pygame run file
+        self.positions = []  # positions are like indices on the grid 2d array and these match 1 to 1 with locations ("ordinally") with locations (pixel co-ords) from pygame run file
         self.walls = None
         self.maze = []
         self.layer = []

@@ -28,7 +28,7 @@ def Reverse(tuples):
 
 class Player:
     def __init__(self, sprite, size, location, steps=10, health=10):
-        self.max_health = 10
+        self.max_health = health
         self.health = health
         self.collected_items = []
         self.location = location                        # in y,x format when represented graphically
@@ -50,6 +50,17 @@ class Player:
         for item in self.collected_items:
             score += item.value
         return score
+
+    def check_if_exit(self, exit):
+        key_found = False
+        for item in self.collected_items:
+            if item.type == "key":
+                key_found = True
+        if self.location == exit[1] and key_found:
+            return True
+        else:
+            False
+
 
     def lose_health(self, damage):
         self.health -= damage

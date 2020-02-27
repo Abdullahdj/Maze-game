@@ -71,7 +71,7 @@ def find_angle_given_coordinates(coordinate1, coordinate2):
 
 
 class Enemy:
-    def __init__(self, id, sprite, size, difficulty, location, position, breed, damage=3, health=10):
+    def __init__(self, id, sprite, size, difficulty, location, position, breed, steps, damage=2, health=10):
         self.ID = id
         self.state = "searching"
         self.damage = damage
@@ -82,7 +82,7 @@ class Enemy:
         self.difficulty = difficulty
         self.sprite = pygame.image.load(sprite)
         self.last_known_location = None             # last known player location in pixels
-        self.steps = 2
+        self.steps = steps
         self.ray_size = 10
         self.rays = []
         self.size = size

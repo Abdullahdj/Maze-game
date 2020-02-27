@@ -28,6 +28,7 @@ lightblue = (0, 125, 255)
 whiteblue = (0, 200, 255)
 white = (255, 255, 255)
 pink = (255, 105, 180)
+gold = (255, 223, 0)
 
 
 def Reverse(tuples):
@@ -144,18 +145,18 @@ def draw_enemies(enemies, window):
         draw_enemy(enemy[0], window)
 
 
-def create_enemy(walls, difficulty, locations, square_width, grid):
+def create_enemy(quantity, walls, difficulty, locations, square_width, grid):
     enemies = []
     used_spots = [None]
     y = None
     if difficulty == 1:
-        for ID in range(0, 10):
+        for ID in range(0, quantity):
             while y in used_spots:
                 y = random.randint(0, (grid.width ** 2 - 1))
             used_spots.append(y)
             location = locations[y]
             position = grid.positions[locations.index(location)]
-            enemy = Enemy.Enemy(ID, "sprites/blob.png", int(square_width), difficulty, location, position, "monkey")
+            enemy = Enemy.Enemy(ID, "sprites/blob.png", int(square_width), difficulty, location, position, "monkey", math.ceil(grid.width/3))
             enemy.create_rays(walls)
             enemies.append((enemy, y))
     return enemies
@@ -222,7 +223,7 @@ def create_player(grid, locations, enemies, square_width):
         if location not in unvisitable:
             break
 
-    player = Player.Player("sprites/player.png", square_width, location)
+    player = Player.Player("sprites/player.png", square_width, location, math.ceil(grid.width/3) + 2, math.ceil(3*(len(enemies)/2)))
     return player
 
 
@@ -234,7 +235,7 @@ def draw_rays(enemy, window):
     enemy.draw_rays(window)
 
 
-def animate_player(items, grid, locations, player, path, speed, enemies, win):
+def animate_player(items, grid, locations, player, path, speed, enemies, exit, square_width, win):
     for index, next_position in enumerate(path[0]):
         pixel_location = locations[grid.positions.index(player.location)]
         next_pixel_location = locations[grid.positions.index(next_position)]
@@ -250,6 +251,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
                 pixel_location = (pixel_location[0], pixel_location[1] + distance/speed)
                 win.fill(green)
                 draw_back(grid, win)
+                draw_exit(exit, square_width, win)
                 draw_grid(grid, win)
                 display_player_health(player, win)
                 display_score_ingame(player, win)
@@ -262,6 +264,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
                 pixel_location = (pixel_location[0] + distance/speed, pixel_location[1])
                 win.fill(green)
                 draw_back(grid, win)
+                draw_exit(exit, square_width, win)
                 draw_grid(grid, win)
                 display_player_health(player, win)
                 display_score_ingame(player, win)
@@ -277,6 +280,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
         pygame.display.update()
         win.fill(green)
         draw_back(grid, win)
+        draw_exit(exit, square_width, win)
         draw_grid(grid, win)
         display_player_health(player, win)
         display_score_ingame(player, win)
@@ -285,7 +289,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, win):
 
 
 # ok it works
-def animate_enemies(items, grid, walls, locations, enemies, path, speed, player, win):
+def animate_enemies(items, grid, walls, locations, enemies, path, speed, player, exit, square_width, win):
     for enemy, ID in enemies:
         for index, location in enumerate(path[enemy]):
             new_pixel_location = locations[grid.positions.index(location)]
@@ -305,6 +309,7 @@ def animate_enemies(items, grid, walls, locations, enemies, path, speed, player,
                     else:
                         enemy.direction = 3
                     draw_back(grid, win)
+                    draw_exit(exit, square_width, win)
                     display_player_health(player, win)
                     enemy.create_rays(walls)
                     player.draw(locations[grid.positions.index(Reverse(player.location))], win)
@@ -324,6 +329,7 @@ def animate_enemies(items, grid, walls, locations, enemies, path, speed, player,
                     else:
                         enemy.direction = 2
                     draw_back(grid, win)
+                    draw_exit(exit, square_width, win)
                     display_player_health(player, win)
                     enemy.create_rays(walls)
                     player.draw(locations[grid.positions.index(Reverse(player.location))], win)
@@ -420,11 +426,9 @@ def move_enemies(grid, locations, enemies, walls, player):
         enemy[0].position = path[0]
         enemy[0].location = locations[grid.positions.index(enemy[0].position)]
         enemy[0].player_remembered()
-
-
-
     return paths
 #  wherever there is steps -= 1 change to matrix weightings
+
 
 def display_player_health(player, win):
     width, height = pygame.display.get_surface().get_size()
@@ -437,9 +441,15 @@ def gridMake(amount,gridList):
 
 
 def create_items(number_of_items, square_width, grid, locations):
-    # also create a key separately
+    # create a key separately
     items = []
-    for x in range(0, number_of_items):
+    index = random.randint(0, (grid.width ** 2) - 1)
+    position = grid.positions[index]
+    location = locations[grid.positions.index(Reverse(position))]
+    items.append(Item.Item("sprites/key.png", square_width, position, location, 300, "key"))
+
+    # create loot randomly and scatter randomly across map
+    for x in range(0, number_of_items - 1):
         sprite = random.choice(["sprites/pile_o_coins.png", "sprites/chest_o_coins.png", "sprites/ruby.png"])
         index = random.randint(0, (grid.width**2)-1)
         position = grid.positions[index]
@@ -454,12 +464,28 @@ def draw_items(items, win):
         item.draw(win)
 
 
+def choose_exit(grid, locations):   # creates a list that stores values of exit tile such as matrix position grid position and pixel position
+    exit = []
+    location = random.choice(locations)
+    position = grid.positions[locations.index(location)]
+    exit.append(location)
+    exit.append(Reverse(position))
+    print(exit)
+    return exit
+
+
+def draw_exit(exit, square_width, win):
+    pygame.draw.rect(win, gold, (exit[0][0], exit[0][1], square_width, square_width))
+
+
+
+
 def game_loop(win, difficulty=1, savefile=""):
     global grid
     if difficulty == 1:
         gridList = [0]
-        mainThread =threading.Thread(target=gridMake,
-                                     args=(10, gridList))
+        mainThread = threading.Thread(target=gridMake,
+                                      args=(10, gridList))
         mainThread.start()
         grid = gridList[0]
         grid.CreateMaze()
@@ -468,7 +494,7 @@ def game_loop(win, difficulty=1, savefile=""):
     win.fill(green)
     locations, walls, square_width = collect_locations(win, grid)
     draw_back(grid, win)
-    enemies = create_enemy(walls, difficulty, locations, square_width, grid)
+    enemies = create_enemy(math.ceil(grid.width / 2), walls, difficulty, locations, square_width, grid)
 
     checker = 1
     while checker != 0:
@@ -482,6 +508,7 @@ def game_loop(win, difficulty=1, savefile=""):
         checker = counter
 
     items = create_items(int(grid.width*1.5), square_width, grid, locations)
+    exit = choose_exit(grid, locations)          # exit is in [location (pixels), position (co-ord)] format
 
     draw_grid(grid, win)
     draw_items(items, win)
@@ -496,6 +523,7 @@ def game_loop(win, difficulty=1, savefile=""):
             block, index = Coordinates(square_width, locations)
             if block and grid.positions[index] != mouse_position:    # if statements are here so that the dijkstra is only run when the cursor changes block for efficiency
                 draw_back(grid, win)
+                draw_exit(exit, square_width, win)
                 draw_grid(grid, win)
                 draw_items(items, win)
             mouse_position, temp = draw_to_mouse(grid, block, index, locations, square_width, win, mouse_position, player)
@@ -506,7 +534,7 @@ def game_loop(win, difficulty=1, savefile=""):
             block, index = Coordinates(square_width, locations)
             if index is not None:
                 path = get_path(grid, index, player)
-                animate_player(items, grid, locations, player, path, 8, enemies, win)
+                animate_player(items, grid, locations, player, path, 5, enemies, exit, square_width, win)
                 turn = "enemy"
 
         elif turn == "enemy":
@@ -514,8 +542,9 @@ def game_loop(win, difficulty=1, savefile=""):
                 path = get_path(grid, index, player)
             enemy_paths = move_enemies(grid, locations, enemies, walls, player)
             pygame.time.wait(150)
-            animate_enemies(items, grid, walls, locations, enemies, enemy_paths, 4, player, win)
+            animate_enemies(items, grid, walls, locations, enemies, enemy_paths, 8, player, exit, square_width, win)
             draw_back(grid, win)
+            draw_exit(exit, square_width, win)
             for enemy in enemies:
                 enemy[0].create_rays(walls)
                 enemy[0].position = enemy_paths[enemy[0]][-1]
@@ -541,17 +570,39 @@ def game_loop(win, difficulty=1, savefile=""):
         clock.tick(144)
         win.fill(green)
         draw_back(grid, win)
+        draw_exit(exit, square_width, win)
         draw_grid(grid, win)
         draw_items(items, win)
         draw_path(grid, path, locations, square_width, win)
         run, pressed = check_events(run)
         display_score_ingame(player, win)
+        player_won = player.check_if_exit(exit)
+        if player_won:
+            you_win_screen(player, win)
+            run = False
 
 
 def display_score_ingame(player, win):
     width, height = pygame.display.get_surface().get_size()
     score = player.calculate_score()
     message_display(("Score:" + str(score)), (width*15/192, height*20/108), win)
+
+
+def you_win_screen(player, win):
+    width, height = pygame.display.get_surface().get_size()
+    time = pygame.time.get_ticks()
+    gold_val1 = 0
+    gold_val2 = 0
+    while pygame.time.get_ticks() - time < 9000:
+        win.fill((int(gold_val1), int(gold_val2), 0))
+        message_display("YOU WIN!!", (int(width/2) - int(width/50), int(height/2) - int(height/50)), win)
+        message_display(("SCORE:" + str(player.calculate_score())), (int(width/2) - int(width/50), int(height/2) + int(height/10)), win)
+        gold_val1 = (gold_val1 + 0.2) % 255
+        gold_val2 = (gold_val2 + 0.182745) % 233
+        pygame.display.update()
+    while True:
+        break
+
 
 
 def game_over_screen(player, win):

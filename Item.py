@@ -27,9 +27,9 @@ pink = (255, 105, 180)
 
 
 class Item:
-    def __init__(self, sprite, size, position, location, kind="loot"):
+    def __init__(self, sprite, size, position, location, value=50, kind="loot"):
         self.sprite = pygame.image.load(sprite)
-        self.value = 50
+        self.value = value
         self.position = position
         self.size = size
         self.location = location
