@@ -27,7 +27,7 @@ def Reverse(tuples):
 
 
 class Player:
-    def __init__(self, sprite, size, location, steps=10, health=10):
+    def __init__(self, sprite, size, location, steps=10, health=10):            # default values for health and steps are overwritten usually in code
         self.max_health = health
         self.health = health
         self.collected_items = []

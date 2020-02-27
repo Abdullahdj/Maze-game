@@ -214,7 +214,7 @@ def draw_path(grid, path, locations, square_width, win):
             break
 
 
-def create_player(grid, locations, enemies, square_width):
+def create_player(grid, locations, enemies, square_width, player):
     unvisitable = []
     for enemy in enemies:
         unvisitable.append(enemy[0].location)
@@ -222,8 +222,19 @@ def create_player(grid, locations, enemies, square_width):
         location = random.choice(grid.positions)
         if location not in unvisitable:
             break
+    if player is None:
+        player = Player.Player("sprites/player.png", square_width, location, math.ceil(grid.width/3) + 2, math.ceil(3*(len(enemies)/2)))
+    else:
+        collected_items = player.collected_items
+        # remove dungeon key
+        for item in collected_items:
+            if item.type == "key":
+                collected_items.remove(item)
 
-    player = Player.Player("sprites/player.png", square_width, location, math.ceil(grid.width/3) + 2, math.ceil(3*(len(enemies)/2)))
+        health_remaining = player.health
+        player = Player.Player("sprites/player.png", square_width, location, math.ceil(grid.width/3) + 2, math.ceil(3*(len(enemies)/2)))
+        player.health = health_remaining
+        player.collected_items = collected_items
     return player
 
 
@@ -253,6 +264,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, exit, s
                 draw_back(grid, win)
                 draw_exit(exit, square_width, win)
                 draw_grid(grid, win)
+                display_turn("player", win)
                 display_player_health(player, win)
                 display_score_ingame(player, win)
                 draw_items(items, win)
@@ -266,6 +278,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, exit, s
                 draw_back(grid, win)
                 draw_exit(exit, square_width, win)
                 draw_grid(grid, win)
+                display_turn("player", win)
                 display_player_health(player, win)
                 display_score_ingame(player, win)
                 draw_items(items, win)
@@ -282,6 +295,7 @@ def animate_player(items, grid, locations, player, path, speed, enemies, exit, s
         draw_back(grid, win)
         draw_exit(exit, square_width, win)
         draw_grid(grid, win)
+        display_turn("player", win)
         display_player_health(player, win)
         display_score_ingame(player, win)
         draw_items(items, win)
@@ -318,6 +332,7 @@ def animate_enemies(items, grid, walls, locations, enemies, path, speed, player,
                     enemy.draw(win)
                     draw_enemies(enemies, win)
                     draw_grid(grid, win)
+                    display_turn("enemy", win)
                     draw_items(items, win)
                     pygame.display.update()
                     clock.tick(60)
@@ -338,6 +353,7 @@ def animate_enemies(items, grid, walls, locations, enemies, path, speed, player,
                     draw_enemies(enemies, win)
                     enemy.draw(win)
                     draw_grid(grid, win)
+                    display_turn("enemy", win)
                     draw_items(items, win)
                     pygame.display.update()
                     clock.tick(60)
@@ -402,7 +418,6 @@ def move_enemies(grid, locations, enemies, walls, player):
                             enemy[0].player_remembered()
 
             if enemy[0].last_known_location is not None:
-                print(enemy[0].last_known_location, enemy[0].location)
                 if enemy[0].location == locations[grid.positions.index(Reverse(player.location))]:
                     break
                 path_to_player, weight = grid.PathFinding(Reverse(enemy[0].position), grid.positions[locations.index(enemy[0].last_known_location)])
@@ -470,7 +485,6 @@ def choose_exit(grid, locations):   # creates a list that stores values of exit 
     position = grid.positions[locations.index(location)]
     exit.append(location)
     exit.append(Reverse(position))
-    print(exit)
     return exit
 
 
@@ -478,9 +492,7 @@ def draw_exit(exit, square_width, win):
     pygame.draw.rect(win, gold, (exit[0][0], exit[0][1], square_width, square_width))
 
 
-
-
-def game_loop(win, difficulty=1, savefile=""):
+def game_loop(win, difficulty, player = None):
     global grid
     if difficulty == 1:
         gridList = [0]
@@ -498,7 +510,8 @@ def game_loop(win, difficulty=1, savefile=""):
 
     checker = 1
     while checker != 0:
-        player = create_player(grid, locations, enemies, square_width)
+        player = create_player(grid, locations, enemies, square_width, player)
+
         counter = 0
         for enemy in enemies:                     # This block of code prevents player from being in the same position as enemy by checking if enemy sees them and reinitialising if they can
             enemy[0].find_player(player, walls, locations, grid)
@@ -510,7 +523,9 @@ def game_loop(win, difficulty=1, savefile=""):
     items = create_items(int(grid.width*1.5), square_width, grid, locations)
     exit = choose_exit(grid, locations)          # exit is in [location (pixels), position (co-ord)] format
 
+    turn = "player"
     draw_grid(grid, win)
+    display_turn(turn, win)
     draw_items(items, win)
     mouse_position = None
     pressed = False
@@ -574,6 +589,7 @@ def game_loop(win, difficulty=1, savefile=""):
         draw_grid(grid, win)
         draw_items(items, win)
         draw_path(grid, path, locations, square_width, win)
+        display_turn(turn, win)
         run, pressed = check_events(run)
         display_score_ingame(player, win)
         player_won = player.check_if_exit(exit)
@@ -588,20 +604,54 @@ def display_score_ingame(player, win):
     message_display(("Score:" + str(score)), (width*15/192, height*20/108), win)
 
 
+def display_turn(turn, win):
+    width, height = pygame.display.get_surface().get_size()
+    message_display(("Turn: " + turn), (width*15/192, height*30/108), win)
+
+
 def you_win_screen(player, win):
     width, height = pygame.display.get_surface().get_size()
     time = pygame.time.get_ticks()
     gold_val1 = 0
     gold_val2 = 0
-    while pygame.time.get_ticks() - time < 9000:
+    while pygame.time.get_ticks() - time < 10000:
         win.fill((int(gold_val1), int(gold_val2), 0))
         message_display("YOU WIN!!", (int(width/2) - int(width/50), int(height/2) - int(height/50)), win)
         message_display(("SCORE:" + str(player.calculate_score())), (int(width/2) - int(width/50), int(height/2) + int(height/10)), win)
         gold_val1 = (gold_val1 + 0.2) % 255
         gold_val2 = (gold_val2 + 0.182745) % 233
         pygame.display.update()
-    while True:
-        break
+        clock.tick(60)
+    continue_button = Button.Button(int(width/20), height*(12/15), int(width/3), int(height/10), white, black, "Continue")
+    quit_button = Button.Button(int(12*width/20), height*(12/15), int(width/3), int(height/10), white, black, "Quit")
+    run = True
+    while run:
+        win.fill(gold)
+        message_display("YOU WIN!!", (int(width / 2) - int(width / 50), int(height / 2) - int(height / 50)), win)
+        message_display(("SCORE:" + str(player.calculate_score())), (int(width / 2) - int(width / 50), int(height / 2) + int(height / 10)), win)
+
+        # continue button
+        continue_button.check_on_button()
+        continue_clicked = continue_button.check_clicked()
+        continue_button.draw_button(win)
+        if continue_clicked:
+            continue_button.draw_button(win)
+            quit_button.draw_button(win)
+            pygame.display.update()
+            game_loop(win, 1, player)
+
+        # quit button
+        quit_button.check_on_button()
+        quit_button_clicked = quit_button.check_clicked()
+        quit_button.draw_button(win)
+        if quit_button_clicked:
+            pygame.display.update()
+            break
+
+        run = check_events(run)[0]
+
+        pygame.display.update()
+        clock.tick(60)
 
 
 
@@ -616,7 +666,7 @@ def game_over_screen(player, win):
         red_val = (red_val + 0.2) % 255
         pygame.display.update()
 
-
+def options_menu()
 
 def menu(run):
     win, width, height = alter_window(9/16)
@@ -647,7 +697,7 @@ def menu(run):
             quit.draw_button(win)
             options.draw_button(win)
             pygame.display.update()
-            game_loop(win)
+            game_loop(win, 1)
 
         # options
         options.check_on_button()
