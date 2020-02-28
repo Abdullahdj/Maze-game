@@ -533,7 +533,7 @@ def draw_exit(exit, square_width, win):
 # game_loop the entire game runs here
 def game_loop(win, difficulty, player=None):
     if difficulty == 1:         # maze is generated randomly with its matrix created alongside
-        grid = Grid.Grid(10)
+        grid = Grid.Grid(20)
         grid.CreateMaze()
         grid.CreateMatrix()
     run = True              # used to break out of game loop or not
@@ -594,7 +594,7 @@ def game_loop(win, difficulty, player=None):
             block, index = Coordinates(square_width, locations)
             if index is not None:
                 path = get_path(grid, index, player)    # gets the path from the player to the mouse
-                animate_player(items, grid, locations, player, path, 5, enemies, exit, square_width, win)   # animates and moves the player along that path
+                animate_player(items, grid, locations, player, path, 8, enemies, exit, square_width, win)   # animates and moves the player along that path
                 turn = "enemy"  # sets turn to enemy because the players turn is done
 
         # this chunk of code creates enemy movements for every enemy and animates all of the movements
@@ -604,7 +604,7 @@ def game_loop(win, difficulty, player=None):
                 path = get_path(grid, index, player)
             enemy_paths = move_enemies(grid, locations, enemies, walls, player)     # creates enemy paths
             pygame.time.wait(150)
-            animate_enemies(items, grid, walls, locations, enemies, enemy_paths, 8, player, exit, square_width, win)    # animates enemy path
+            animate_enemies(items, grid, walls, locations, enemies, enemy_paths, 3, player, exit, square_width, win)    # animates enemy path
 
             draw_back(grid, win)
             draw_exit(exit, square_width, win)
