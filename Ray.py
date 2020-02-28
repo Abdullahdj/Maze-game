@@ -1,12 +1,5 @@
 import math
 import pygame
-from pygame.locals import *
-import time
-import Grid
-import Button
-import Stack
-import Enemy
-import PQ
 import heapq
 import copy
 
@@ -33,6 +26,7 @@ def to_rad(angle):
     return angle
 
 
+# class that creates rays with a start point end point and angle and length
 class Ray:
     # angle is in absolute value north being 180 degrees
     def __init__(self, start_pos, length, angle):
@@ -41,7 +35,9 @@ class Ray:
         self.angle = to_rad(angle)
         self.end = (start_pos[0] + length * (math.sin(self.angle)), start_pos[1] + length * (math.cos(self.angle)))
 
-    def cast(self, wall_q):         # relies on enemy class for creating a wall queue
+    # this cast the rays onto the walls of the maze  relies on enemy class for creating
+    # a wall queue but this increases efficiency drastically
+    def cast(self, wall_q):
         wall_points = {}
         walls = copy.copy(wall_q)
         heapq.heapify(walls)
@@ -62,11 +58,12 @@ class Ray:
 
             den = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
             if den != 0:
-                t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den
-                u = - ((x1 - x2)*(y1 - y3) - (y1 - y2)*(x1 - x3)) / den
+                t = ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / den       # using a vector math formula utilising matrices
+                u = - ((x1 - x2)*(y1 - y3) - (y1 - y2)*(x1 - x3)) / den     # the ray can be cast onto walls
                 if 0 <= t <= 1 and 0 <= u <= 1:
                     point = ((x1 + t*(x2 - x1)), (y1 + t*(y2 - y1)))
-                    wall_points[wall] = [point, ((((self.start[0] - point[0]) ** 2) + ((self.start[1] - point[1]) ** 2)) ** (1 / 2))]  # pythagorean theorem
+                    wall_points[wall] = [point, ((((self.start[0] - point[0]) ** 2) + ((self.start[1] - point[1]) ** 2))
+                                                 ** (1 / 2))]  # pythagorean theorem
                 else:
                     point = None
                     wall_points[wall] = [point, None]
@@ -84,3 +81,4 @@ class Ray:
         if closest[0] is not None:
             self.end = closest[0]
         return closest[0]
+    # closest wall intersection coordinate is returned and this is the end point of the ray
